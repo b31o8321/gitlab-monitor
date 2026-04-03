@@ -55,9 +55,3 @@ struct MonitorView: View {
         }
     }
 }
-
-// MARK: - Temporary placeholder (replaced in Task 9)
-private struct SettingsView: View {
-    @ObservedObject var store: RepositoryStore
-    var body: some View { Text("Settings coming soon").padding() }
-}
