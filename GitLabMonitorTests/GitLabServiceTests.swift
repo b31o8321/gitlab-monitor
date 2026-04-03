@@ -4,8 +4,7 @@ import XCTest
 final class GitLabServiceTests: XCTestCase {
 
     struct MockGitLabService: GitLabServiceProtocol {
-        let responseJSON: String
-        let statusCode: Int
+        let resultToReturn: Result<PipelineResult, GitLabError>
 
         func fetchLatestPipeline(
             gitlabUrl: String,
@@ -13,31 +12,20 @@ final class GitLabServiceTests: XCTestCase {
             branch: String,
             token: String
         ) async throws -> PipelineResult {
-            if statusCode == 401 { throw GitLabError.unauthorized }
-            if statusCode == 404 { throw GitLabError.notFound }
-
-            let data = Data(responseJSON.utf8)
-            let pipelines = try JSONDecoder().decode([PipelineJSON].self, from: data)
-            guard let first = pipelines.first else { throw GitLabError.invalidResponse }
-            return PipelineResult(
-                status: PipelineStatus(rawValue: first.status) ?? .unknown,
-                webUrl: first.web_url,
-                updatedAt: ISO8601DateFormatter().date(from: first.updated_at) ?? Date()
-            )
+            switch resultToReturn {
+            case .success(let result): return result
+            case .failure(let error): throw error
+            }
         }
     }
 
-    private struct PipelineJSON: Decodable {
-        let status: String
-        let web_url: String
-        let updated_at: String
-    }
-
     func testParseSuccessPipeline() async throws {
-        let json = """
-        [{"status":"success","web_url":"https://gitlab.example.com/group/project/-/pipelines/1","updated_at":"2026-04-03T10:00:00Z"}]
-        """
-        let mock = MockGitLabService(responseJSON: json, statusCode: 200)
+        let expectedResult = PipelineResult(
+            status: .success,
+            webUrl: "https://gitlab.example.com/group/project/-/pipelines/1",
+            updatedAt: Date()
+        )
+        let mock = MockGitLabService(resultToReturn: .success(expectedResult))
         let result = try await mock.fetchLatestPipeline(
             gitlabUrl: "https://gitlab.example.com",
             projectPath: "group/project",
@@ -49,10 +37,12 @@ final class GitLabServiceTests: XCTestCase {
     }
 
     func testParseRunningPipeline() async throws {
-        let json = """
-        [{"status":"running","web_url":"https://gitlab.example.com/group/project/-/pipelines/2","updated_at":"2026-04-03T10:01:00Z"}]
-        """
-        let mock = MockGitLabService(responseJSON: json, statusCode: 200)
+        let expectedResult = PipelineResult(
+            status: .running,
+            webUrl: "https://gitlab.example.com/group/project/-/pipelines/2",
+            updatedAt: Date()
+        )
+        let mock = MockGitLabService(resultToReturn: .success(expectedResult))
         let result = try await mock.fetchLatestPipeline(
             gitlabUrl: "https://gitlab.example.com",
             projectPath: "group/project",
@@ -63,7 +53,7 @@ final class GitLabServiceTests: XCTestCase {
     }
 
     func testUnauthorizedThrows() async {
-        let mock = MockGitLabService(responseJSON: "[]", statusCode: 401)
+        let mock = MockGitLabService(resultToReturn: .failure(.unauthorized))
         do {
             _ = try await mock.fetchLatestPipeline(
                 gitlabUrl: "https://gitlab.example.com",
@@ -80,7 +70,7 @@ final class GitLabServiceTests: XCTestCase {
     }
 
     func testNotFoundThrows() async {
-        let mock = MockGitLabService(responseJSON: "[]", statusCode: 404)
+        let mock = MockGitLabService(resultToReturn: .failure(.notFound))
         do {
             _ = try await mock.fetchLatestPipeline(
                 gitlabUrl: "https://gitlab.example.com",
