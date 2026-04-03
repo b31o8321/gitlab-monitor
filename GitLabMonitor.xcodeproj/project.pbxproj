@@ -8,19 +8,40 @@
 
 /* Begin PBXBuildFile section */
 		096D2EF8AC6FB26BDDB8D74A /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618EFB844A1A5B736B5A38C7 /* Repository.swift */; };
+		4D556C94174208B9201C6A69 /* GitLabServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634D41F9E34DA51E60D23553 /* GitLabServiceTests.swift */; };
+		4E9A35C3E1A019E09D0B0160 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7395C71AED5D0C3409BA61E3 /* KeychainService.swift */; };
 		582C4BE2C7F81C5E6A641991 /* PipelineStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BA93F89620A8171E473D5D /* PipelineStatus.swift */; };
+		7C9DE8B4D61765DF1A13B202 /* RepositoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E4F888612270D9B3C79A19 /* RepositoryStore.swift */; };
+		958B1238A679DD574668B80F /* GitLabServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22AFD2290F5C89F2D596EAB /* GitLabServiceProtocol.swift */; };
+		AAECE2CD1377996C8F72D16D /* GitLabService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3C8AB2669B6070AC5D70C8 /* GitLabService.swift */; };
 		B78AA7598554B4616C4B3334 /* GitLabMonitorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7391B11CB778FC29573362 /* GitLabMonitorApp.swift */; };
 		C4A3B7ED708AF356677D6E98 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4344B05F8FCC5D7131DEB33 /* AppSettings.swift */; };
 		E6C66007315D825CBD3EB427 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE87C1FA3E0C90EFBF6BA35 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		81EB3149C23F7EF03744CC55 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B94B5D9AABD2246BC16B0CA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A5494BB87DBFC72B911E52B4;
+			remoteInfo = GitLabMonitor;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		5F3C8AB2669B6070AC5D70C8 /* GitLabService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabService.swift; sourceTree = "<group>"; };
 		618EFB844A1A5B736B5A38C7 /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
+		634D41F9E34DA51E60D23553 /* GitLabServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabServiceTests.swift; sourceTree = "<group>"; };
+		7395C71AED5D0C3409BA61E3 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		761D30EB52EAAA1D410F3C7C /* GitLabMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitLabMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		78C437C5403D16115F5AE3A0 /* GitLabMonitorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GitLabMonitorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		945E852498ED629C0DFA5F70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		94BA93F89620A8171E473D5D /* PipelineStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineStatus.swift; sourceTree = "<group>"; };
 		9FE87C1FA3E0C90EFBF6BA35 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D22AFD2290F5C89F2D596EAB /* GitLabServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabServiceProtocol.swift; sourceTree = "<group>"; };
 		D4344B05F8FCC5D7131DEB33 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		E2E4F888612270D9B3C79A19 /* RepositoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryStore.swift; sourceTree = "<group>"; };
 		ED7391B11CB778FC29573362 /* GitLabMonitorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabMonitorApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -29,8 +50,17 @@
 			isa = PBXGroup;
 			children = (
 				761D30EB52EAAA1D410F3C7C /* GitLabMonitor.app */,
+				78C437C5403D16115F5AE3A0 /* GitLabMonitorTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		476B5AD28A2830F647834CD8 /* GitLabMonitorTests */ = {
+			isa = PBXGroup;
+			children = (
+				634D41F9E34DA51E60D23553 /* GitLabServiceTests.swift */,
+			);
+			path = GitLabMonitorTests;
 			sourceTree = "<group>";
 		};
 		6C5675D4FB3650EBAFA737F8 /* GitLabMonitor */ = {
@@ -40,6 +70,8 @@
 				ED7391B11CB778FC29573362 /* GitLabMonitorApp.swift */,
 				945E852498ED629C0DFA5F70 /* Info.plist */,
 				90D6592B971457A8B34C0F01 /* Models */,
+				C22F85F439DBCDE031515689 /* Services */,
+				B0B794316A2A346B3E6247A7 /* Store */,
 			);
 			path = GitLabMonitor;
 			sourceTree = "<group>";
@@ -54,10 +86,29 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		B0B794316A2A346B3E6247A7 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				E2E4F888612270D9B3C79A19 /* RepositoryStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		C22F85F439DBCDE031515689 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5F3C8AB2669B6070AC5D70C8 /* GitLabService.swift */,
+				D22AFD2290F5C89F2D596EAB /* GitLabServiceProtocol.swift */,
+				7395C71AED5D0C3409BA61E3 /* KeychainService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		FD0203C1EA46DD5481DA207A = {
 			isa = PBXGroup;
 			children = (
 				6C5675D4FB3650EBAFA737F8 /* GitLabMonitor */,
+				476B5AD28A2830F647834CD8 /* GitLabMonitorTests */,
 				0315676715C066A3CE661F58 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +116,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5F0CAA4102917FAF7292D7BC /* GitLabMonitorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 673DAD746545A44613C26F4E /* Build configuration list for PBXNativeTarget "GitLabMonitorTests" */;
+			buildPhases = (
+				48533EB81B12DA7505A34943 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E9DF015E5FED699522A64558 /* PBXTargetDependency */,
+			);
+			name = GitLabMonitorTests;
+			packageProductDependencies = (
+			);
+			productName = GitLabMonitorTests;
+			productReference = 78C437C5403D16115F5AE3A0 /* GitLabMonitorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		A5494BB87DBFC72B911E52B4 /* GitLabMonitor */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E8C3D7404236DB74E70F3A33 /* Build configuration list for PBXNativeTarget "GitLabMonitor" */;
@@ -91,9 +160,13 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
+					5F0CAA4102917FAF7292D7BC = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
 					A5494BB87DBFC72B911E52B4 = {
 						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -112,6 +185,7 @@
 			projectRoot = "";
 			targets = (
 				A5494BB87DBFC72B911E52B4 /* GitLabMonitor */,
+				5F0CAA4102917FAF7292D7BC /* GitLabMonitorTests */,
 			);
 		};
 /* End PBXProject section */
@@ -124,21 +198,63 @@
 				E6C66007315D825CBD3EB427 /* AppDelegate.swift in Sources */,
 				C4A3B7ED708AF356677D6E98 /* AppSettings.swift in Sources */,
 				B78AA7598554B4616C4B3334 /* GitLabMonitorApp.swift in Sources */,
+				AAECE2CD1377996C8F72D16D /* GitLabService.swift in Sources */,
+				958B1238A679DD574668B80F /* GitLabServiceProtocol.swift in Sources */,
+				4E9A35C3E1A019E09D0B0160 /* KeychainService.swift in Sources */,
 				582C4BE2C7F81C5E6A641991 /* PipelineStatus.swift in Sources */,
 				096D2EF8AC6FB26BDDB8D74A /* Repository.swift in Sources */,
+				7C9DE8B4D61765DF1A13B202 /* RepositoryStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		48533EB81B12DA7505A34943 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D556C94174208B9201C6A69 /* GitLabServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		E9DF015E5FED699522A64558 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A5494BB87DBFC72B911E52B4 /* GitLabMonitor */;
+			targetProxy = 81EB3149C23F7EF03744CC55 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		166E362E625D8700C57D4A74 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GitLabMonitor.app/Contents/MacOS/GitLabMonitor";
+			};
+			name = Debug;
+		};
 		3E4E1D9B23E25D5B1BA29DE3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = GitLabMonitor/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -156,9 +272,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = GitLabMonitor/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -205,9 +322,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
@@ -230,6 +348,27 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		8C7144EE9C5AEC56BBB415BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GitLabMonitor.app/Contents/MacOS/GitLabMonitor";
 			};
 			name = Release;
 		};
@@ -266,9 +405,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGNING_REQUIRED = NO;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
@@ -304,6 +444,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		673DAD746545A44613C26F4E /* Build configuration list for PBXNativeTarget "GitLabMonitorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				166E362E625D8700C57D4A74 /* Debug */,
+				8C7144EE9C5AEC56BBB415BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		A718228FAD988B48FC53466E /* Build configuration list for PBXProject "GitLabMonitor" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
