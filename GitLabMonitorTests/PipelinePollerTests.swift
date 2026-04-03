@@ -18,6 +18,14 @@ final class PipelinePollerTests: XCTestCase {
             case .failure(let e): throw e
             }
         }
+
+        func fetchProjects(gitlabUrl: String, token: String, search: String) async throws -> [GitLabProject] {
+            return []
+        }
+
+        func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] {
+            return []
+        }
     }
 
     func testPollerUpdatesStoreOnSuccess() async throws {

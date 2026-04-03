@@ -8,6 +8,17 @@ struct GitLabService: GitLabServiceProtocol {
         let updated_at: String
     }
 
+    private struct ProjectJSON: Decodable {
+        let id: Int
+        let name: String
+        let path_with_namespace: String
+        let default_branch: String?
+    }
+
+    private struct BranchJSON: Decodable {
+        let name: String
+    }
+
     func fetchLatestPipeline(
         gitlabUrl: String,
         projectPath: String,
@@ -44,5 +55,52 @@ struct GitLabService: GitLabServiceProtocol {
             webUrl: first.web_url,
             updatedAt: updatedAt
         )
+    }
+
+    func fetchProjects(gitlabUrl: String, token: String, search: String) async throws -> [GitLabProject] {
+        let encodedSearch = search.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? search
+        let urlString = "\(gitlabUrl)/api/v4/projects?membership=true&order_by=last_activity_at&sort=desc&per_page=5&search=\(encodedSearch)"
+        guard let url = URL(string: urlString) else { throw GitLabError.invalidResponse }
+
+        var request = URLRequest(url: url)
+        request.setValue(token, forHTTPHeaderField: "PRIVATE-TOKEN")
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw GitLabError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else { throw GitLabError.invalidResponse }
+        if http.statusCode == 401 { throw GitLabError.unauthorized }
+        if http.statusCode == 404 { throw GitLabError.notFound }
+
+        let projects = try JSONDecoder().decode([ProjectJSON].self, from: data)
+        return projects.map {
+            GitLabProject(id: $0.id, name: $0.name, pathWithNamespace: $0.path_with_namespace, defaultBranch: $0.default_branch)
+        }
+    }
+
+    func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] {
+        let urlString = "\(gitlabUrl)/api/v4/projects/\(projectId)/branches?per_page=50"
+        guard let url = URL(string: urlString) else { throw GitLabError.invalidResponse }
+
+        var request = URLRequest(url: url)
+        request.setValue(token, forHTTPHeaderField: "PRIVATE-TOKEN")
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw GitLabError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else { throw GitLabError.invalidResponse }
+        if http.statusCode == 401 { throw GitLabError.unauthorized }
+        if http.statusCode == 404 { throw GitLabError.notFound }
+
+        let branches = try JSONDecoder().decode([BranchJSON].self, from: data)
+        return branches.map { GitLabBranch(name: $0.name) }
     }
 }
