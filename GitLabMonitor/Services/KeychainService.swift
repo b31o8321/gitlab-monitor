@@ -2,13 +2,19 @@ import Foundation
 import Security
 
 enum KeychainService {
-    private static let key = "com.gitlab-monitor.access-token"
+    private static let service = "com.gitlab-monitor"
+    private static let account = "access-token"
 
     static func saveToken(_ token: String) {
+        guard !token.isEmpty else {
+            deleteToken()
+            return
+        }
         let data = Data(token.utf8)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
             kSecValueData as String: data
         ]
         SecItemDelete(query as CFDictionary)
@@ -18,7 +24,8 @@ enum KeychainService {
     static func loadToken() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -32,7 +39,8 @@ enum KeychainService {
     static func deleteToken() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
         ]
         SecItemDelete(query as CFDictionary)
     }
