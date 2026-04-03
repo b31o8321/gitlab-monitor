@@ -23,6 +23,8 @@ targets:
     deploymentTarget: "13.0"
     sources:
       - path: GitLabMonitor
+    resources:
+      - GitLabMonitor/Assets.xcassets
     info:
       path: GitLabMonitor/Info.plist
       properties:
