@@ -4,27 +4,59 @@ struct SettingsView: View {
     @ObservedObject var store: RepositoryStore
     @Environment(\.dismiss) var dismiss
 
+    @State private var step: Int = 1
     @State private var gitlabUrl: String = ""
     @State private var token: String = ""
     @State private var pollInterval: String = "60"
-    @State private var showAddRepo = false
+    @State private var selectedRepos: [Repository] = []
     @State private var editingRepo: Repository? = nil
+
+    private var service: GitLabServiceProtocol { GitLabService() }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
-                Text("设置")
+                Text(step == 1 ? "连接设置" : "监控仓库")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
-                Button("完成") { saveAndDismiss() }
-                    .buttonStyle(.borderedProminent)
+                if step == 2 {
+                    Text("已选\(selectedRepos.count)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.trailing, 4)
+                }
+                Text("\(step)/2")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.trailing, 8)
             }
             .padding()
 
             Divider()
 
+            if step == 1 {
+                step1View
+            } else {
+                step2View
+            }
+        }
+        .frame(width: 420, height: 480)
+        .onAppear { loadCurrentSettings() }
+        .sheet(item: $editingRepo) { repo in
+            RepoFormView(existingRepo: repo) { updated in
+                if let idx = selectedRepos.firstIndex(where: { $0.id == updated.id }) {
+                    selectedRepos[idx] = updated
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 1
+
+    private var step1View: some View {
+        VStack(spacing: 0) {
             Form {
                 Section {
                     TextField("https://gitlab.company.com", text: $gitlabUrl)
@@ -42,7 +74,7 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                         Button("?") {
                             let baseUrl = gitlabUrl.isEmpty ? "https://gitlab.com" : gitlabUrl
-                            if let url = URL(string: "\(baseUrl)/-/user_settings/personal_access_tokens") {
+                            if let url = URL(string: "\(baseUrl)/-/profile/personal_access_tokens") {
                                 NSWorkspace.shared.open(url)
                             }
                         }
@@ -65,76 +97,79 @@ struct SettingsView: View {
                 } header: {
                     Text("轮询间隔")
                 }
-
-                Section {
-                    ForEach(store.settings.repositories) { repo in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(repo.name).fontWeight(.medium)
-                                Text("\(repo.projectPath) @ \(repo.branch)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Button("编辑") { editingRepo = repo }
-                                .buttonStyle(.plain)
-                                .foregroundColor(.accentColor)
-                            Button("删除") { deleteRepo(repo) }
-                                .buttonStyle(.plain)
-                                .foregroundColor(.red)
-                        }
-                        .padding(.vertical, 2)
-                    }
-                    Button("+ 添加仓库") { showAddRepo = true }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.accentColor)
-                } header: {
-                    Text("仓库列表")
-                }
             }
             .formStyle(.grouped)
-        }
-        .frame(width: 420, height: 520)
-        .onAppear { loadCurrentSettings() }
-        .sheet(isPresented: $showAddRepo) {
-            RepoFormView(existingRepo: nil) { newRepo in
-                var settings = store.settings
-                settings.repositories.append(newRepo)
-                store.updateSettings(settings)
+
+            Spacer()
+
+            HStack {
+                Spacer()
+                Button("下一步 →") { goToStep2() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(gitlabUrl.isEmpty || token.isEmpty)
             }
-        }
-        .sheet(item: $editingRepo) { repo in
-            RepoFormView(existingRepo: repo) { updated in
-                var settings = store.settings
-                if let idx = settings.repositories.firstIndex(where: { $0.id == updated.id }) {
-                    settings.repositories[idx] = updated
-                }
-                store.updateSettings(settings)
-            }
+            .padding()
         }
     }
+
+    // MARK: - Step 2
+
+    private var step2View: some View {
+        VStack(spacing: 0) {
+            ProjectSearchView(
+                gitlabUrl: gitlabUrl,
+                token: token,
+                service: service,
+                selectedRepos: $selectedRepos
+            )
+
+            Divider()
+
+            HStack {
+                Button("← 返回") { step = 1 }
+                    .buttonStyle(.plain)
+                Spacer()
+                Button("完成") { saveAndDismiss() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding()
+        }
+    }
+
+    // MARK: - Actions
 
     private func loadCurrentSettings() {
         gitlabUrl = store.settings.gitlabUrl
         token = KeychainService.loadToken() ?? ""
         pollInterval = "\(store.settings.pollInterval)"
+        selectedRepos = store.settings.repositories
     }
 
-    private func saveAndDismiss() {
+    private func goToStep2() {
+        saveConnectionSettings()
+        step = 2
+    }
+
+    private func saveConnectionSettings() {
         var settings = store.settings
         settings.gitlabUrl = gitlabUrl
         settings.pollInterval = max(10, Int(pollInterval) ?? 60)
         store.updateSettings(settings)
         KeychainService.saveToken(token)
-        dismiss()
     }
 
-    private func deleteRepo(_ repo: Repository) {
+    private func saveAndDismiss() {
+        saveConnectionSettings()
         var settings = store.settings
-        settings.repositories.removeAll { $0.id == repo.id }
+        // Merge: keep existing repos not in selectedRepos, then add all selected
+        // Simpler: replace entirely with selectedRepos (user has full control in step 2)
+        settings.repositories = selectedRepos
         store.updateSettings(settings)
+        dismiss()
     }
 }
+
+// MARK: - RepoFormView (used only for editing existing repos)
 
 struct RepoFormView: View {
     let existingRepo: Repository?
