@@ -7,14 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		096D2EF8AC6FB26BDDB8D74A /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618EFB844A1A5B736B5A38C7 /* Repository.swift */; };
+		582C4BE2C7F81C5E6A641991 /* PipelineStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BA93F89620A8171E473D5D /* PipelineStatus.swift */; };
 		B78AA7598554B4616C4B3334 /* GitLabMonitorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7391B11CB778FC29573362 /* GitLabMonitorApp.swift */; };
+		C4A3B7ED708AF356677D6E98 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4344B05F8FCC5D7131DEB33 /* AppSettings.swift */; };
 		E6C66007315D825CBD3EB427 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE87C1FA3E0C90EFBF6BA35 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		618EFB844A1A5B736B5A38C7 /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
 		761D30EB52EAAA1D410F3C7C /* GitLabMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitLabMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		945E852498ED629C0DFA5F70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		94BA93F89620A8171E473D5D /* PipelineStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineStatus.swift; sourceTree = "<group>"; };
 		9FE87C1FA3E0C90EFBF6BA35 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D4344B05F8FCC5D7131DEB33 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		ED7391B11CB778FC29573362 /* GitLabMonitorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabMonitorApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -33,8 +39,19 @@
 				9FE87C1FA3E0C90EFBF6BA35 /* AppDelegate.swift */,
 				ED7391B11CB778FC29573362 /* GitLabMonitorApp.swift */,
 				945E852498ED629C0DFA5F70 /* Info.plist */,
+				90D6592B971457A8B34C0F01 /* Models */,
 			);
 			path = GitLabMonitor;
+			sourceTree = "<group>";
+		};
+		90D6592B971457A8B34C0F01 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D4344B05F8FCC5D7131DEB33 /* AppSettings.swift */,
+				94BA93F89620A8171E473D5D /* PipelineStatus.swift */,
+				618EFB844A1A5B736B5A38C7 /* Repository.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		FD0203C1EA46DD5481DA207A = {
@@ -105,7 +122,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				E6C66007315D825CBD3EB427 /* AppDelegate.swift in Sources */,
+				C4A3B7ED708AF356677D6E98 /* AppSettings.swift in Sources */,
 				B78AA7598554B4616C4B3334 /* GitLabMonitorApp.swift in Sources */,
+				582C4BE2C7F81C5E6A641991 /* PipelineStatus.swift in Sources */,
+				096D2EF8AC6FB26BDDB8D74A /* Repository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
