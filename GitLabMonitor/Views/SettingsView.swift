@@ -123,7 +123,7 @@ struct SettingsView: View {
     private func saveAndDismiss() {
         var settings = store.settings
         settings.gitlabUrl = gitlabUrl
-        settings.pollInterval = Int(pollInterval) ?? 60
+        settings.pollInterval = max(10, Int(pollInterval) ?? 60)
         store.updateSettings(settings)
         KeychainService.saveToken(token)
         dismiss()

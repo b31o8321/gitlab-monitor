@@ -16,12 +16,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPopover()
 
-        // Restart poller and update icon when settings change
-        store.objectWillChange.sink { [weak self] in
+        // Restart poller when settings actually change
+        store.$settings.dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async {
                 self?.poller.stop()
                 self?.poller.start()
-                self?.updateIcon()
             }
         }.store(in: &cancellables)
 
@@ -61,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    @objc func updateIcon() {
+    @objc private func updateIcon() {
         Task { @MainActor in
             let status = self.store.overallStatus
             let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)

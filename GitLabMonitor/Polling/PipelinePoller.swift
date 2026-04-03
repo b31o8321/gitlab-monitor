@@ -5,6 +5,7 @@ class PipelinePoller {
     private let store: RepositoryStore
     private let service: GitLabServiceProtocol
     private var timer: Timer?
+    private var isPolling = false
 
     init(store: RepositoryStore, service: GitLabServiceProtocol = GitLabService()) {
         self.store = store
@@ -30,6 +31,10 @@ class PipelinePoller {
     }
 
     func pollOnce(token: String) async {
+        guard !isPolling else { return }
+        isPolling = true
+        defer { isPolling = false }
+
         let settings = store.settings
         await withTaskGroup(of: Void.self) { group in
             for repo in settings.repositories {

@@ -12,7 +12,7 @@ struct AppSettings: Codable {
     )
 
     static func load() -> AppSettings {
-        guard let data = UserDefaults.standard.data(forKey: "appSettings"),
+        guard let data = UserDefaults.standard.data(forKey: "com.gitlab-monitor.appSettings"),
               let settings = try? JSONDecoder().decode(AppSettings.self, from: data) else {
             return .default
         }
@@ -21,6 +21,6 @@ struct AppSettings: Codable {
 
     func save() {
         guard let data = try? JSONEncoder().encode(self) else { return }
-        UserDefaults.standard.set(data, forKey: "appSettings")
+        UserDefaults.standard.set(data, forKey: "com.gitlab-monitor.appSettings")
     }
 }
