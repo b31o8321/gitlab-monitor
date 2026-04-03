@@ -73,8 +73,3 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-// MARK: - Temporary placeholder (replaced in Task 8)
-private struct MonitorView: View {
-    @ObservedObject var store: RepositoryStore
-    var body: some View { Text("Loading...").padding(16) }
-}
