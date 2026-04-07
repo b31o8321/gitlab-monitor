@@ -43,22 +43,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openSettingsWindow() {
+        NSApp.activate(ignoringOtherApps: true)
         if let existing = settingsWindow, existing.isVisible {
             existing.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
             return
         }
         let view = SettingsView(store: store)
         let hosting = NSHostingController(rootView: view)
         let window = NSWindow(contentViewController: hosting)
         window.title = "GitLab Monitor 设置"
-        window.styleMask = [.titled, .closable]
+        window.styleMask = [.titled, .closable, .resizable]
         window.setContentSize(NSSize(width: 420, height: 480))
         window.center()
         window.isReleasedWhenClosed = false
+        window.level = .floating
         settingsWindow = window
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func setupStatusItem() {
