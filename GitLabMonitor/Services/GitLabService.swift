@@ -25,7 +25,10 @@ struct GitLabService: GitLabServiceProtocol {
         branch: String,
         token: String
     ) async throws -> PipelineResult {
-        let encodedPath = projectPath.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? projectPath
+        // Slash must be encoded as %2F for GitLab project path API segment
+        var pathAllowedMinusSlash = CharacterSet.urlPathAllowed
+        pathAllowedMinusSlash.remove("/")
+        let encodedPath = projectPath.addingPercentEncoding(withAllowedCharacters: pathAllowedMinusSlash) ?? projectPath
         let encodedBranch = branch.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? branch
         let urlString = "\(gitlabUrl)/api/v4/projects/\(encodedPath)/pipelines?ref=\(encodedBranch)&per_page=1&order_by=id&sort=desc"
         guard let url = URL(string: urlString) else { throw GitLabError.invalidResponse }
