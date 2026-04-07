@@ -9,11 +9,16 @@ struct ProjectSearchView: View {
     @State private var searchText: String = ""
     @State private var searchResults: [GitLabProject] = []
     @State private var loadingState: LoadState = .idle
+    @State private var errorMessage: String = ""
     @State private var branchState: [Int: BranchLoad] = [:]
     @State private var searchTask: Task<Void, Never>?
 
     enum LoadState {
         case idle, loading, loaded, failed
+    }
+
+    private var normalizedUrl: String {
+        gitlabUrl.hasSuffix("/") ? String(gitlabUrl.dropLast()) : gitlabUrl
     }
 
     struct BranchLoad {
@@ -81,10 +86,17 @@ struct ProjectSearchView: View {
                         }
                         .padding()
                     case .failed:
-                        VStack {
-                            Text("加载失败，请检查连接设置")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("加载失败")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .fontWeight(.medium)
+                                .foregroundColor(.red)
+                            if !errorMessage.isEmpty {
+                                Text(errorMessage)
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .textSelection(.enabled)
+                            }
                             Button("重试") { loadProjects() }
                                 .font(.caption)
                         }
@@ -248,10 +260,11 @@ struct ProjectSearchView: View {
 
     private func loadProjects() {
         loadingState = .loading
+        errorMessage = ""
         Task {
             do {
                 let projects = try await service.fetchProjects(
-                    gitlabUrl: gitlabUrl,
+                    gitlabUrl: normalizedUrl,
                     token: token,
                     search: searchText
                 )
@@ -259,8 +272,14 @@ struct ProjectSearchView: View {
                     searchResults = projects
                     loadingState = .loaded
                 }
+            } catch let e as GitLabError {
+                await MainActor.run {
+                    errorMessage = e.localizedDescription
+                    loadingState = .failed
+                }
             } catch {
                 await MainActor.run {
+                    errorMessage = error.localizedDescription
                     loadingState = .failed
                 }
             }
@@ -272,7 +291,7 @@ struct ProjectSearchView: View {
         Task {
             do {
                 let branches = try await service.fetchBranches(
-                    gitlabUrl: gitlabUrl,
+                    gitlabUrl: normalizedUrl,
                     token: token,
                     projectId: projectId
                 )

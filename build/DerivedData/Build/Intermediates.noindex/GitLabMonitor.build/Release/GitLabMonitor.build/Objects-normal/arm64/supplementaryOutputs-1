@@ -1,0 +1,12 @@
+{
+  "/Users/norman/development/gitlab-monitor/GitLabMonitor/AppDelegate.swift" : {
+    "abi-baseline-json" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor.abi.json",
+    "const-values" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor-primary.swiftconstvalues",
+    "dependencies" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor-primary.d",
+    "diagnostics" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor-primary.dia",
+    "objc-header" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor-Swift.h",
+    "swiftdoc" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor.swiftdoc",
+    "swiftmodule" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor.swiftmodule",
+    "swiftsourceinfo" : "/Users/norman/development/gitlab-monitor/build/DerivedData/Build/Intermediates.noindex/GitLabMonitor.build/Release/GitLabMonitor.build/Objects-normal/arm64/GitLabMonitor.swiftsourceinfo"
+  }
+}

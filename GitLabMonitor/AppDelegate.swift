@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var poller: PipelinePoller!
     private var cancellables = Set<AnyCancellable>()
     private var eventMonitor: Any?
+    private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         store = RepositoryStore()
@@ -32,6 +33,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .repositoryStateDidChange,
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(openSettingsWindow),
+            name: .openSettings,
+            object: nil
+        )
+    }
+
+    @objc private func openSettingsWindow() {
+        if let existing = settingsWindow, existing.isVisible {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        let view = SettingsView(store: store)
+        let hosting = NSHostingController(rootView: view)
+        let window = NSWindow(contentViewController: hosting)
+        window.title = "GitLab Monitor 设置"
+        window.styleMask = [.titled, .closable]
+        window.setContentSize(NSSize(width: 420, height: 480))
+        window.center()
+        window.isReleasedWhenClosed = false
+        settingsWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func setupStatusItem() {

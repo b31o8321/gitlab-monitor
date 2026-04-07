@@ -27,9 +27,18 @@ protocol GitLabServiceProtocol {
     ) async throws -> [GitLabBranch]
 }
 
-enum GitLabError: Error {
+enum GitLabError: Error, LocalizedError {
     case unauthorized
     case notFound
     case networkError(Error)
     case invalidResponse
+
+    var errorDescription: String? {
+        switch self {
+        case .unauthorized: return "Token 无效或权限不足 (401)"
+        case .notFound: return "找不到资源，请检查 GitLab 地址 (404)"
+        case .networkError(let e): return "网络错误：\(e.localizedDescription)"
+        case .invalidResponse: return "服务器返回了无效的响应"
+        }
+    }
 }

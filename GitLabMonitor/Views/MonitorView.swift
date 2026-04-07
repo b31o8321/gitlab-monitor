@@ -1,8 +1,11 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let openSettings = Notification.Name("com.gitlab-monitor.openSettings")
+}
+
 struct MonitorView: View {
     @ObservedObject var store: RepositoryStore
-    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -11,7 +14,9 @@ struct MonitorView: View {
                 Text("GitLab Monitor")
                     .fontWeight(.semibold)
                 Spacer()
-                Button(action: { showSettings = true }) {
+                Button(action: {
+                    NotificationCenter.default.post(name: .openSettings, object: nil)
+                }) {
                     Image(systemName: "gearshape")
                 }
                 .buttonStyle(.plain)
@@ -50,8 +55,5 @@ struct MonitorView: View {
             }
         }
         .frame(width: 320)
-        .sheet(isPresented: $showSettings) {
-            SettingsView(store: store)
-        }
     }
 }
