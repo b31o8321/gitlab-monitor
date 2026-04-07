@@ -152,10 +152,12 @@ struct SettingsView: View {
 
     private func saveConnectionSettings() {
         var settings = store.settings
-        settings.gitlabUrl = gitlabUrl
+        var cleanUrl = gitlabUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleanUrl.hasSuffix("/") { cleanUrl = String(cleanUrl.dropLast()) }
+        settings.gitlabUrl = cleanUrl
         settings.pollInterval = max(10, Int(pollInterval) ?? 60)
         store.updateSettings(settings)
-        KeychainService.saveToken(token)
+        KeychainService.saveToken(token.trimmingCharacters(in: .whitespacesAndNewlines))
     }
 
     private func saveAndDismiss() {

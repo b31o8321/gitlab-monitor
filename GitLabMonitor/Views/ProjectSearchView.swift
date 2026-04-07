@@ -263,6 +263,7 @@ struct ProjectSearchView: View {
         errorMessage = ""
         Task {
             do {
+                print("[GitLabMonitor] fetchProjects url=\(normalizedUrl) tokenLen=\(token.count) search='\(searchText)'")
                 let projects = try await service.fetchProjects(
                     gitlabUrl: normalizedUrl,
                     token: token,
@@ -273,11 +274,13 @@ struct ProjectSearchView: View {
                     loadingState = .loaded
                 }
             } catch let e as GitLabError {
+                print("[GitLabMonitor] fetchProjects GitLabError: \(e)")
                 await MainActor.run {
-                    errorMessage = e.localizedDescription
+                    errorMessage = e.localizedDescription ?? "\(e)"
                     loadingState = .failed
                 }
             } catch {
+                print("[GitLabMonitor] fetchProjects error: \(error)")
                 await MainActor.run {
                     errorMessage = error.localizedDescription
                     loadingState = .failed
