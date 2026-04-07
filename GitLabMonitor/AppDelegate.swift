@@ -128,7 +128,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
             let status = self.store.overallStatus
             if let image = NSImage(named: "gitlab-icon") {
-                image.isTemplate = true
+                image.isTemplate = false
                 self.statusItem.button?.image = image
             } else {
                 let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
@@ -136,7 +136,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     .withSymbolConfiguration(config)
                 self.statusItem.button?.image = fallback
             }
-            self.statusItem.button?.contentTintColor = NSColor(status.color)
+            // tintColor not needed for full-color icon; status color shown in popover rows
         }
     }
 }
