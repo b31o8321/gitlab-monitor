@@ -1,0 +1,46 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.app
+
+      - name: Build Archive
+        run: |
+          xcodebuild \
+            -scheme GitLabMonitor \
+            -configuration Release \
+            -archivePath /tmp/GitLabMonitor.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create DMG
+        run: |
+          mkdir /tmp/dmg-staging
+          cp -r /tmp/GitLabMonitor.xcarchive/Products/Applications/GitLabMonitor.app /tmp/dmg-staging/
+          ln -sf /Applications /tmp/dmg-staging/Applications
+          hdiutil create \
+            -volname "GitLabMonitor" \
+            -srcfolder /tmp/dmg-staging \
+            -ov \
+            -format UDZO \
+            /tmp/GitLabMonitor.dmg
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /tmp/GitLabMonitor.dmg
+          generate_release_notes: true
