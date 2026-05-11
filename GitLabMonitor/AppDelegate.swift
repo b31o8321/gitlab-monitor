@@ -142,6 +142,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let status = self.store.overallStatus
             if let image = NSImage(named: "gitlab-icon") {
                 image.isTemplate = false
+                image.size = NSSize(width: 18, height: 18)
                 self.statusItem.button?.image = image
             } else {
                 let config = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
