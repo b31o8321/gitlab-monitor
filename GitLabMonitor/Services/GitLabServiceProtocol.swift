@@ -25,6 +25,13 @@ protocol GitLabServiceProtocol {
         token: String,
         projectId: Int
     ) async throws -> [GitLabBranch]
+
+    func fetchBranches(
+        gitlabUrl: String,
+        token: String,
+        projectPath: String,
+        search: String?
+    ) async throws -> [GitLabBranch]
 }
 
 enum GitLabError: Error, LocalizedError {
@@ -32,6 +39,7 @@ enum GitLabError: Error, LocalizedError {
     case notFound
     case networkError(Error)
     case invalidResponse
+    case noBranchMatch
 
     var errorDescription: String? {
         switch self {
@@ -39,6 +47,7 @@ enum GitLabError: Error, LocalizedError {
         case .notFound: return "找不到资源，请检查 GitLab 地址 (404)"
         case .networkError(let e): return "网络错误：\(e.localizedDescription)"
         case .invalidResponse: return "服务器返回了无效的响应"
+        case .noBranchMatch: return "未匹配到分支"
         }
     }
 }

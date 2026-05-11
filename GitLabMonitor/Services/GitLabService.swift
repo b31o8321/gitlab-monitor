@@ -86,9 +86,26 @@ struct GitLabService: GitLabServiceProtocol {
     }
 
     func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] {
-        let urlString = "\(gitlabUrl)/api/v4/projects/\(projectId)/branches?per_page=50"
+        let urlString = "\(gitlabUrl)/api/v4/projects/\(projectId)/repository/branches?per_page=100"
         guard let url = URL(string: urlString) else { throw GitLabError.invalidResponse }
+        return try await loadBranches(url: url, token: token)
+    }
 
+    func fetchBranches(gitlabUrl: String, token: String, projectPath: String, search: String?) async throws -> [GitLabBranch] {
+        var pathAllowedMinusSlash = CharacterSet.urlPathAllowed
+        pathAllowedMinusSlash.remove("/")
+        let encodedPath = projectPath.addingPercentEncoding(withAllowedCharacters: pathAllowedMinusSlash) ?? projectPath
+
+        var urlString = "\(gitlabUrl)/api/v4/projects/\(encodedPath)/repository/branches?per_page=100"
+        if let search = search, !search.isEmpty {
+            let encodedSearch = search.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? search
+            urlString += "&search=\(encodedSearch)"
+        }
+        guard let url = URL(string: urlString) else { throw GitLabError.invalidResponse }
+        return try await loadBranches(url: url, token: token)
+    }
+
+    private func loadBranches(url: URL, token: String) async throws -> [GitLabBranch] {
         var request = URLRequest(url: url)
         request.setValue(token, forHTTPHeaderField: "PRIVATE-TOKEN")
 

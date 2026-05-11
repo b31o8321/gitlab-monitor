@@ -40,6 +40,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .openSettings,
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleRefresh),
+            name: .refreshRequested,
+            object: nil
+        )
+    }
+
+    @objc private func handleRefresh() {
+        Task { @MainActor in
+            await poller.pollOnce(token: KeychainService.loadToken() ?? "")
+        }
     }
 
     @objc private func openSettingsWindow() {

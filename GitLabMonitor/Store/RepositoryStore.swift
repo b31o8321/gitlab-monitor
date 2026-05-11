@@ -4,6 +4,7 @@ import SwiftUI
 struct RepositoryState: Identifiable {
     let repository: Repository
     var status: PipelineStatus
+    var resolvedBranch: String?
     var webUrl: String?
     var updatedAt: Date?
     var errorMessage: String?
@@ -23,20 +24,24 @@ class RepositoryStore: ObservableObject {
         syncStates()
     }
 
-    func applyResult(_ result: PipelineResult, for repositoryId: UUID) {
+    func applyResult(_ result: PipelineResult, resolvedBranch: String, for repositoryId: UUID) {
         guard let index = states.firstIndex(where: { $0.id == repositoryId }) else { return }
         states[index].status = result.status
         states[index].webUrl = result.webUrl
         states[index].updatedAt = result.updatedAt
+        states[index].resolvedBranch = resolvedBranch
         states[index].errorMessage = nil
         globalError = nil
         NotificationCenter.default.post(name: .repositoryStateDidChange, object: nil)
     }
 
-    func applyError(_ error: GitLabError, for repositoryId: UUID) {
+    func applyError(_ error: GitLabError, for repositoryId: UUID, resolvedBranch: String? = nil) {
         guard let index = states.firstIndex(where: { $0.id == repositoryId }) else { return }
         states[index].status = .unknown
         states[index].errorMessage = errorMessage(for: error)
+        if let resolvedBranch {
+            states[index].resolvedBranch = resolvedBranch
+        }
         if case .unauthorized = error {
             globalError = "Token 无效，请检查设置"
         }
@@ -64,6 +69,7 @@ class RepositoryStore: ObservableObject {
         case .notFound: return "项目未找到"
         case .networkError: return "连接失败"
         case .invalidResponse: return "响应异常"
+        case .noBranchMatch: return "未匹配到分支"
         }
     }
 }

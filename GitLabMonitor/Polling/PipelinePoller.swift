@@ -4,12 +4,14 @@ import Foundation
 class PipelinePoller {
     private let store: RepositoryStore
     private let service: GitLabServiceProtocol
+    private let resolver: BranchResolver
     private var timer: Timer?
     private var isPolling = false
 
     init(store: RepositoryStore, service: GitLabServiceProtocol = GitLabService()) {
         self.store = store
         self.service = service
+        self.resolver = BranchResolver(service: service)
     }
 
     func start() {
@@ -39,21 +41,46 @@ class PipelinePoller {
         await withTaskGroup(of: Void.self) { group in
             for repo in settings.repositories {
                 group.addTask { @MainActor in
-                    do {
-                        let result = try await self.service.fetchLatestPipeline(
-                            gitlabUrl: settings.gitlabUrl,
-                            projectPath: repo.projectPath,
-                            branch: repo.branch,
-                            token: token
-                        )
-                        self.store.applyResult(result, for: repo.id)
-                    } catch let error as GitLabError {
-                        self.store.applyError(error, for: repo.id)
-                    } catch {
-                        self.store.applyError(.networkError(error), for: repo.id)
-                    }
+                    await self.pollRepository(repo, gitlabUrl: settings.gitlabUrl, token: token)
                 }
             }
+        }
+    }
+
+    private func pollRepository(_ repo: Repository, gitlabUrl: String, token: String) async {
+        let resolvedBranch: String?
+        do {
+            resolvedBranch = try await resolver.resolve(
+                selector: repo.branchSelector,
+                gitlabUrl: gitlabUrl,
+                projectPath: repo.projectPath,
+                token: token
+            )
+        } catch let error as GitLabError {
+            store.applyError(error, for: repo.id)
+            return
+        } catch {
+            store.applyError(.networkError(error), for: repo.id)
+            return
+        }
+
+        guard let branch = resolvedBranch else {
+            store.applyError(.noBranchMatch, for: repo.id)
+            return
+        }
+
+        do {
+            let result = try await service.fetchLatestPipeline(
+                gitlabUrl: gitlabUrl,
+                projectPath: repo.projectPath,
+                branch: branch,
+                token: token
+            )
+            store.applyResult(result, resolvedBranch: branch, for: repo.id)
+        } catch let error as GitLabError {
+            store.applyError(error, for: repo.id, resolvedBranch: branch)
+        } catch {
+            store.applyError(.networkError(error), for: repo.id, resolvedBranch: branch)
         }
     }
 

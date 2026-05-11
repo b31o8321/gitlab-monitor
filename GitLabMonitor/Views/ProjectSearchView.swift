@@ -60,13 +60,7 @@ struct ProjectSearchView: View {
                         sectionHeader("已选择")
                         ForEach(selectedRepos) { repo in
                             let project = searchResults.first { $0.pathWithNamespace == repo.projectPath }
-                            repoRow(
-                                projectId: project?.id,
-                                pathWithNamespace: repo.projectPath,
-                                name: repo.name,
-                                selectedBranch: repo.branch,
-                                isSelected: true
-                            )
+                            selectedRepoCard(repo: repo, projectId: project?.id)
                             Divider().padding(.leading, 40)
                         }
                     }
@@ -108,13 +102,7 @@ struct ProjectSearchView: View {
                             .padding()
                     case .loaded:
                         ForEach(unselected) { project in
-                            repoRow(
-                                projectId: project.id,
-                                pathWithNamespace: project.pathWithNamespace,
-                                name: project.name,
-                                selectedBranch: nil,
-                                isSelected: false
-                            )
+                            unselectedRepoRow(project: project)
                             Divider().padding(.leading, 40)
                         }
                     default:
@@ -145,112 +133,82 @@ struct ProjectSearchView: View {
             .padding(.bottom, 2)
     }
 
+    // MARK: - Unselected (single line, no expanded controls)
+
     @ViewBuilder
-    private func repoRow(
-        projectId: Int?,
-        pathWithNamespace: String,
-        name: String,
-        selectedBranch: String?,
-        isSelected: Bool
-    ) -> some View {
+    private func unselectedRepoRow(project: GitLabProject) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                .foregroundColor(isSelected ? .accentColor : .secondary)
+            Image(systemName: "square")
+                .foregroundColor(.secondary)
                 .frame(width: 20)
-
             VStack(alignment: .leading, spacing: 1) {
-                Text(name).fontWeight(.medium)
-                Text(pathWithNamespace).font(.caption).foregroundColor(.secondary)
+                Text(project.name).fontWeight(.medium)
+                Text(project.pathWithNamespace).font(.caption).foregroundColor(.secondary)
             }
-
             Spacer()
-
-            if isSelected, let id = projectId {
-                branchPicker(projectId: id, pathWithNamespace: pathWithNamespace, currentBranch: selectedBranch ?? "main")
-            } else if isSelected {
-                branchPicker(projectId: nil, pathWithNamespace: pathWithNamespace, currentBranch: selectedBranch ?? "main")
-            }
         }
         .padding(.horizontal)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
         .onTapGesture {
-            toggleSelection(projectId: projectId, pathWithNamespace: pathWithNamespace, name: name)
+            toggleSelection(projectId: project.id, pathWithNamespace: project.pathWithNamespace, name: project.name, defaultBranch: project.defaultBranch)
         }
     }
+
+    // MARK: - Selected (with branch mode picker)
 
     @ViewBuilder
-    private func branchPicker(projectId: Int?, pathWithNamespace: String, currentBranch: String) -> some View {
-        let load = projectId.flatMap { branchState[$0] }
-        let branches = load?.branches ?? []
+    private func selectedRepoCard(repo: Repository, projectId: Int?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Image(systemName: "checkmark.square.fill")
+                    .foregroundColor(.accentColor)
+                    .frame(width: 20)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(repo.name).fontWeight(.medium)
+                    Text(repo.projectPath).font(.caption).foregroundColor(.secondary)
+                }
+                Spacer()
+                Button {
+                    if let idx = selectedRepos.firstIndex(where: { $0.id == repo.id }) {
+                        selectedRepos.remove(at: idx)
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
 
-        Group {
-            if let pid = projectId, load == nil {
-                // Trigger load on appear
-                Text(currentBranch)
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(4)
-                    .onAppear { loadBranches(projectId: pid) }
-            } else if load?.loading == true {
-                ProgressView().scaleEffect(0.5).frame(width: 60)
-            } else if load?.failed == true {
-                TextField("分支", text: branchBinding(pathWithNamespace: pathWithNamespace, currentBranch: currentBranch))
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
-                    .font(.caption)
-            } else if branches.isEmpty {
-                TextField("分支", text: branchBinding(pathWithNamespace: pathWithNamespace, currentBranch: currentBranch))
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 80)
-                    .font(.caption)
-            } else {
-                Picker("", selection: branchBinding(pathWithNamespace: pathWithNamespace, currentBranch: currentBranch)) {
-                    ForEach(branches, id: \.self) { b in
-                        Text(b).tag(b)
+            BranchSelectorEditor(
+                repo: repo,
+                projectId: projectId,
+                branchState: branchState[projectId ?? -1],
+                onSelectorChange: { newSelector in
+                    if let idx = selectedRepos.firstIndex(where: { $0.id == repo.id }) {
+                        selectedRepos[idx].branchSelector = newSelector
+                    }
+                },
+                onLoadBranches: {
+                    if let pid = projectId, branchState[pid] == nil {
+                        loadBranches(projectId: pid)
                     }
                 }
-                .labelsHidden()
-                .frame(width: 100)
-                .font(.caption)
-            }
+            )
+            .padding(.leading, 30)
         }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
     }
 
-    private func branchBinding(pathWithNamespace: String, currentBranch: String) -> Binding<String> {
-        Binding(
-            get: {
-                selectedRepos.first { $0.projectPath == pathWithNamespace }?.branch ?? currentBranch
-            },
-            set: { newBranch in
-                if let idx = selectedRepos.firstIndex(where: { $0.projectPath == pathWithNamespace }) {
-                    selectedRepos[idx] = Repository(
-                        id: selectedRepos[idx].id,
-                        name: selectedRepos[idx].name,
-                        projectPath: selectedRepos[idx].projectPath,
-                        branch: newBranch
-                    )
-                }
-            }
-        )
-    }
+    // MARK: - Selection state
 
-    private func toggleSelection(projectId: Int?, pathWithNamespace: String, name: String) {
+    private func toggleSelection(projectId: Int?, pathWithNamespace: String, name: String, defaultBranch: String?) {
         if let idx = selectedRepos.firstIndex(where: { $0.projectPath == pathWithNamespace }) {
             selectedRepos.remove(at: idx)
         } else {
-            // Determine default branch
-            let defaultBranch: String
-            if let pid = projectId, let branches = branchState[pid]?.branches, let first = branches.first {
-                defaultBranch = first
-            } else if let project = searchResults.first(where: { $0.id == projectId }) {
-                defaultBranch = project.defaultBranch ?? "main"
-            } else {
-                defaultBranch = "main"
-            }
-            let repo = Repository(name: name, projectPath: pathWithNamespace, branch: defaultBranch)
+            let initialBranch = defaultBranch ?? "main"
+            let repo = Repository(name: name, projectPath: pathWithNamespace, branchSelector: .fixed(initialBranch))
             selectedRepos.append(repo)
             if let pid = projectId, branchState[pid] == nil {
                 loadBranches(projectId: pid)
@@ -258,12 +216,13 @@ struct ProjectSearchView: View {
         }
     }
 
+    // MARK: - Loaders
+
     private func loadProjects() {
         loadingState = .loading
         errorMessage = ""
         Task {
             do {
-                print("[GitLabMonitor] fetchProjects url=\(normalizedUrl) tokenLen=\(token.count) search='\(searchText)'")
                 let projects = try await service.fetchProjects(
                     gitlabUrl: normalizedUrl,
                     token: token,
@@ -274,13 +233,11 @@ struct ProjectSearchView: View {
                     loadingState = .loaded
                 }
             } catch let e as GitLabError {
-                print("[GitLabMonitor] fetchProjects GitLabError: \(e)")
                 await MainActor.run {
-                    errorMessage = e.localizedDescription ?? "\(e)"
+                    errorMessage = e.errorDescription ?? "\(e)"
                     loadingState = .failed
                 }
             } catch {
-                print("[GitLabMonitor] fetchProjects error: \(error)")
                 await MainActor.run {
                     errorMessage = error.localizedDescription
                     loadingState = .failed
@@ -301,26 +258,148 @@ struct ProjectSearchView: View {
                 let names = branches.map { $0.name }
                 await MainActor.run {
                     branchState[projectId] = BranchLoad(branches: names, loading: false, failed: false)
-                    // If selected, update to first branch if not already set to a valid one
-                    if let idx = selectedRepos.firstIndex(where: {
-                        searchResults.first(where: { $0.id == projectId })?.pathWithNamespace == $0.projectPath
-                    }) {
-                        let currentBranch = selectedRepos[idx].branch
-                        if !names.contains(currentBranch), let first = names.first {
-                            selectedRepos[idx] = Repository(
-                                id: selectedRepos[idx].id,
-                                name: selectedRepos[idx].name,
-                                projectPath: selectedRepos[idx].projectPath,
-                                branch: first
-                            )
-                        }
-                    }
                 }
             } catch {
                 await MainActor.run {
                     branchState[projectId] = BranchLoad(failed: true)
                 }
             }
+        }
+    }
+}
+
+// MARK: - BranchSelectorEditor
+
+private struct BranchSelectorEditor: View {
+    let repo: Repository
+    let projectId: Int?
+    let branchState: ProjectSearchView.BranchLoad?
+    let onSelectorChange: (BranchSelector) -> Void
+    let onLoadBranches: () -> Void
+
+    enum Mode: String, CaseIterable, Identifiable {
+        case fixed = "固定分支"
+        case rule = "动态匹配最新"
+        case regex = "自定义正则"
+        var id: String { rawValue }
+    }
+
+    @State private var mode: Mode = .fixed
+    @State private var fixedBranch: String = "main"
+    @State private var rulePrefix: String = "test"
+    @State private var ruleFormat: BranchDateFormat = .yyyymmdd
+    @State private var regexPattern: String = "^test-\\d{8}$"
+    @State private var initialized: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Picker("分支", selection: $mode) {
+                ForEach(Mode.allCases) { m in Text(m.rawValue).tag(m) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            switch mode {
+            case .fixed:
+                fixedSection
+            case .rule:
+                ruleSection
+            case .regex:
+                regexSection
+            }
+        }
+        .font(.caption)
+        .onAppear { initializeFromSelector() }
+        .onChange(of: mode) { _ in publishSelector() }
+        .onChange(of: fixedBranch) { _ in publishSelector() }
+        .onChange(of: rulePrefix) { _ in publishSelector() }
+        .onChange(of: ruleFormat) { _ in publishSelector() }
+        .onChange(of: regexPattern) { _ in publishSelector() }
+    }
+
+    @ViewBuilder
+    private var fixedSection: some View {
+        if let load = branchState, !load.branches.isEmpty {
+            Picker("", selection: $fixedBranch) {
+                ForEach(load.branches, id: \.self) { Text($0).tag($0) }
+            }
+            .labelsHidden()
+        } else if branchState?.loading == true {
+            HStack { ProgressView().scaleEffect(0.5); Text("加载分支...").foregroundColor(.secondary) }
+                .onAppear { onLoadBranches() }
+        } else {
+            TextField("分支名", text: $fixedBranch)
+                .textFieldStyle(.roundedBorder)
+                .onAppear { onLoadBranches() }
+        }
+    }
+
+    @ViewBuilder
+    private var ruleSection: some View {
+        HStack {
+            Text("前缀:").foregroundColor(.secondary)
+            TextField("test", text: $rulePrefix)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 120)
+            Picker("", selection: $ruleFormat) {
+                ForEach(BranchDateFormat.allCases, id: \.self) { fmt in
+                    Text(fmt.displayName).tag(fmt)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 130)
+        }
+        Text("匹配 \(BranchDateFormat.example(prefix: rulePrefix, format: ruleFormat))")
+            .foregroundColor(.secondary)
+            .font(.caption2)
+    }
+
+    @ViewBuilder
+    private var regexSection: some View {
+        TextField("^test-\\d{8}$", text: $regexPattern)
+            .textFieldStyle(.roundedBorder)
+            .font(.system(.caption, design: .monospaced))
+    }
+
+    private func initializeFromSelector() {
+        guard !initialized else { return }
+        initialized = true
+        switch repo.branchSelector {
+        case .fixed(let name):
+            mode = .fixed
+            fixedBranch = name
+        case .rule(let prefix, let format):
+            mode = .rule
+            rulePrefix = prefix
+            ruleFormat = format
+        case .regex(let pattern):
+            mode = .regex
+            regexPattern = pattern
+        }
+    }
+
+    private func publishSelector() {
+        guard initialized else { return }
+        let selector: BranchSelector
+        switch mode {
+        case .fixed: selector = .fixed(fixedBranch)
+        case .rule: selector = .rule(prefix: rulePrefix, format: ruleFormat)
+        case .regex: selector = .regex(regexPattern)
+        }
+        if selector != repo.branchSelector {
+            onSelectorChange(selector)
+        }
+    }
+}
+
+private extension BranchDateFormat {
+    static func example(prefix: String, format: BranchDateFormat) -> String {
+        let p = prefix.isEmpty ? "test" : prefix
+        switch format {
+        case .yyyymmdd: return "\(p)-20260326"
+        case .yyyymmddDashed: return "\(p)-2026-03-26"
+        case .yyyymmddDotted: return "\(p)-2026.03.26"
+        case .yyyymmddWithTail: return "\(p)-20260326-hotfix"
         }
     }
 }

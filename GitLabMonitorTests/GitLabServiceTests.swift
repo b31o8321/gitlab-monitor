@@ -25,6 +25,10 @@ final class GitLabServiceTests: XCTestCase {
         func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] {
             return []
         }
+
+        func fetchBranches(gitlabUrl: String, token: String, projectPath: String, search: String?) async throws -> [GitLabBranch] {
+            return []
+        }
     }
 
     func testParseSuccessPipeline() async throws {

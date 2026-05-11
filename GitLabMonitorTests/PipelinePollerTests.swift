@@ -4,27 +4,26 @@ import XCTest
 @MainActor
 final class PipelinePollerTests: XCTestCase {
 
-    struct MockGitLabService: GitLabServiceProtocol {
-        var result: Result<PipelineResult, GitLabError>
+    final class MockGitLabService: GitLabServiceProtocol {
+        var pipelineResult: Result<PipelineResult, GitLabError>
+        var branchesByPath: [String] = []
 
-        func fetchLatestPipeline(
-            gitlabUrl: String,
-            projectPath: String,
-            branch: String,
-            token: String
-        ) async throws -> PipelineResult {
-            switch result {
+        init(result: Result<PipelineResult, GitLabError>, branches: [String] = []) {
+            self.pipelineResult = result
+            self.branchesByPath = branches
+        }
+
+        func fetchLatestPipeline(gitlabUrl: String, projectPath: String, branch: String, token: String) async throws -> PipelineResult {
+            switch pipelineResult {
             case .success(let r): return r
             case .failure(let e): throw e
             }
         }
 
-        func fetchProjects(gitlabUrl: String, token: String, search: String) async throws -> [GitLabProject] {
-            return []
-        }
-
-        func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] {
-            return []
+        func fetchProjects(gitlabUrl: String, token: String, search: String) async throws -> [GitLabProject] { [] }
+        func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] { [] }
+        func fetchBranches(gitlabUrl: String, token: String, projectPath: String, search: String?) async throws -> [GitLabBranch] {
+            return branchesByPath.map { GitLabBranch(name: $0) }
         }
     }
 
@@ -48,6 +47,7 @@ final class PipelinePollerTests: XCTestCase {
 
         XCTAssertEqual(store.states.first?.status, .success)
         XCTAssertNil(store.states.first?.errorMessage)
+        XCTAssertEqual(store.states.first?.resolvedBranch, "main")
     }
 
     func testPollerUpdatesStoreOnError() async throws {
@@ -65,5 +65,58 @@ final class PipelinePollerTests: XCTestCase {
 
         XCTAssertEqual(store.states.first?.status, .unknown)
         XCTAssertEqual(store.states.first?.errorMessage, "项目未找到")
+    }
+
+    func testPollerWithRuleResolvesLatestBranchAndPolls() async throws {
+        let store = RepositoryStore()
+        let repo = Repository(
+            name: "test",
+            projectPath: "group/project",
+            branchSelector: .rule(prefix: "test", format: .yyyymmdd)
+        )
+        var settings = AppSettings.default
+        settings.gitlabUrl = "https://gitlab.example.com"
+        settings.repositories = [repo]
+        store.updateSettings(settings)
+
+        let mockResult = PipelineResult(
+            status: .running,
+            webUrl: "https://gitlab.example.com/x",
+            updatedAt: Date()
+        )
+        let mockService = MockGitLabService(
+            result: .success(mockResult),
+            branches: ["test-20260128", "test-20260326", "main"]
+        )
+        let poller = PipelinePoller(store: store, service: mockService)
+
+        await poller.pollOnce(token: "test-token")
+
+        XCTAssertEqual(store.states.first?.status, .running)
+        XCTAssertEqual(store.states.first?.resolvedBranch, "test-20260326")
+    }
+
+    func testPollerSetsNoBranchMatchErrorWhenRuleMisses() async throws {
+        let store = RepositoryStore()
+        let repo = Repository(
+            name: "test",
+            projectPath: "group/project",
+            branchSelector: .rule(prefix: "test", format: .yyyymmdd)
+        )
+        var settings = AppSettings.default
+        settings.gitlabUrl = "https://gitlab.example.com"
+        settings.repositories = [repo]
+        store.updateSettings(settings)
+
+        let mockService = MockGitLabService(
+            result: .failure(.notFound),  // not used; pipeline call should be skipped
+            branches: ["main", "develop"]
+        )
+        let poller = PipelinePoller(store: store, service: mockService)
+
+        await poller.pollOnce(token: "test-token")
+
+        XCTAssertEqual(store.states.first?.status, .unknown)
+        XCTAssertEqual(store.states.first?.errorMessage, "未匹配到分支")
     }
 }

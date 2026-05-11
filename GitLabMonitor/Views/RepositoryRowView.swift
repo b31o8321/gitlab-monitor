@@ -12,9 +12,11 @@ struct RepositoryRowView: View {
                 Text(state.repository.name)
                     .fontWeight(.medium)
                 Spacer()
-                Text(state.repository.branch)
+                Text(branchLabel)
                     .foregroundColor(.secondary)
                     .font(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
                 Text(state.status.symbol + " " + state.status.label)
                     .font(.caption)
                     .foregroundColor(state.status.color)
@@ -37,5 +39,12 @@ struct RepositoryRowView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private var branchLabel: String {
+        if let resolved = state.resolvedBranch {
+            return resolved
+        }
+        return state.repository.branchSelector.displayHint
     }
 }

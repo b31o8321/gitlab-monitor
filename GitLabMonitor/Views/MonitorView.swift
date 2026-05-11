@@ -2,6 +2,7 @@ import SwiftUI
 
 extension Notification.Name {
     static let openSettings = Notification.Name("com.gitlab-monitor.openSettings")
+    static let refreshRequested = Notification.Name("com.gitlab-monitor.refreshRequested")
 }
 
 struct MonitorView: View {
@@ -14,6 +15,12 @@ struct MonitorView: View {
                 Text("GitLab Monitor")
                     .fontWeight(.semibold)
                 Spacer()
+                Button(action: {
+                    NotificationCenter.default.post(name: .refreshRequested, object: nil)
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.plain)
                 Button(action: {
                     NotificationCenter.default.post(name: .openSettings, object: nil)
                 }) {

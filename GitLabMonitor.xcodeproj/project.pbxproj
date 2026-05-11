@@ -11,15 +11,19 @@
 		096D2EF8AC6FB26BDDB8D74A /* Repository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 618EFB844A1A5B736B5A38C7 /* Repository.swift */; };
 		09EA3880B236F7987B7CE505 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 50718D5B584E770A70082CF0 /* Assets.xcassets */; };
 		2BD19DEB9B93416599CB8FC0 /* MonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE31D47585601AF705BA692B /* MonitorView.swift */; };
+		3EFE3C4C707973B585E613AD /* BranchResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1361C5DA08EDAE2319F8569A /* BranchResolverTests.swift */; };
 		4332B7D465A0C4CFBA330225 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84653D9DD89125054E84F1BA /* SettingsView.swift */; };
+		4A04ADE0DD7F39AA8A40F6D8 /* BranchSelectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 831DF11A53697FFDB4C167B7 /* BranchSelectorTests.swift */; };
 		4C99F82616697DF8E903BB75 /* RepositoryRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D14F633AD1303769752602 /* RepositoryRowView.swift */; };
 		4D556C94174208B9201C6A69 /* GitLabServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634D41F9E34DA51E60D23553 /* GitLabServiceTests.swift */; };
 		4E9A35C3E1A019E09D0B0160 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7395C71AED5D0C3409BA61E3 /* KeychainService.swift */; };
+		550487121E8649D723DC9C28 /* BranchResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BACDB7AADC785C8840CD7FE /* BranchResolver.swift */; };
 		5732A260A323DD8A140AF542 /* GitLabBranch.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B9426CB11B18C69265F3E3 /* GitLabBranch.swift */; };
 		582C4BE2C7F81C5E6A641991 /* PipelineStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94BA93F89620A8171E473D5D /* PipelineStatus.swift */; };
 		64DDF7DDC553BEAD7C1FC210 /* PipelinePollerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70FE351FA813322E7E4D8DC4 /* PipelinePollerTests.swift */; };
 		66F395D1752A30DD18854A24 /* ProjectSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00474CD9E4F5F027CCC19211 /* ProjectSearchView.swift */; };
 		78FAB202FB14FC2035857FBF /* PipelinePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA9688B5F9B473743A271E3D /* PipelinePoller.swift */; };
+		7A8D4FBEAEEBCBC3142F2698 /* BranchSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 695FA6FD217C62831FA51FF7 /* BranchSelector.swift */; };
 		7C9DE8B4D61765DF1A13B202 /* RepositoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E4F888612270D9B3C79A19 /* RepositoryStore.swift */; };
 		958B1238A679DD574668B80F /* GitLabServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22AFD2290F5C89F2D596EAB /* GitLabServiceProtocol.swift */; };
 		AAECE2CD1377996C8F72D16D /* GitLabService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3C8AB2669B6070AC5D70C8 /* GitLabService.swift */; };
@@ -41,14 +45,18 @@
 /* Begin PBXFileReference section */
 		00474CD9E4F5F027CCC19211 /* ProjectSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSearchView.swift; sourceTree = "<group>"; };
 		06B754DBFC9A2BDFE0CD08A3 /* GitLabProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabProject.swift; sourceTree = "<group>"; };
+		1361C5DA08EDAE2319F8569A /* BranchResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchResolverTests.swift; sourceTree = "<group>"; };
 		50718D5B584E770A70082CF0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5BACDB7AADC785C8840CD7FE /* BranchResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchResolver.swift; sourceTree = "<group>"; };
 		5F3C8AB2669B6070AC5D70C8 /* GitLabService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabService.swift; sourceTree = "<group>"; };
 		618EFB844A1A5B736B5A38C7 /* Repository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repository.swift; sourceTree = "<group>"; };
 		634D41F9E34DA51E60D23553 /* GitLabServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitLabServiceTests.swift; sourceTree = "<group>"; };
+		695FA6FD217C62831FA51FF7 /* BranchSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchSelector.swift; sourceTree = "<group>"; };
 		70FE351FA813322E7E4D8DC4 /* PipelinePollerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelinePollerTests.swift; sourceTree = "<group>"; };
 		7395C71AED5D0C3409BA61E3 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		761D30EB52EAAA1D410F3C7C /* GitLabMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitLabMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		78C437C5403D16115F5AE3A0 /* GitLabMonitorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GitLabMonitorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		831DF11A53697FFDB4C167B7 /* BranchSelectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BranchSelectorTests.swift; sourceTree = "<group>"; };
 		84653D9DD89125054E84F1BA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		945E852498ED629C0DFA5F70 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		94BA93F89620A8171E473D5D /* PipelineStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineStatus.swift; sourceTree = "<group>"; };
@@ -87,6 +95,8 @@
 		476B5AD28A2830F647834CD8 /* GitLabMonitorTests */ = {
 			isa = PBXGroup;
 			children = (
+				1361C5DA08EDAE2319F8569A /* BranchResolverTests.swift */,
+				831DF11A53697FFDB4C167B7 /* BranchSelectorTests.swift */,
 				634D41F9E34DA51E60D23553 /* GitLabServiceTests.swift */,
 				70FE351FA813322E7E4D8DC4 /* PipelinePollerTests.swift */,
 			);
@@ -121,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				D4344B05F8FCC5D7131DEB33 /* AppSettings.swift */,
+				695FA6FD217C62831FA51FF7 /* BranchSelector.swift */,
 				F6B9426CB11B18C69265F3E3 /* GitLabBranch.swift */,
 				06B754DBFC9A2BDFE0CD08A3 /* GitLabProject.swift */,
 				94BA93F89620A8171E473D5D /* PipelineStatus.swift */,
@@ -140,6 +151,7 @@
 		C22F85F439DBCDE031515689 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				5BACDB7AADC785C8840CD7FE /* BranchResolver.swift */,
 				5F3C8AB2669B6070AC5D70C8 /* GitLabService.swift */,
 				D22AFD2290F5C89F2D596EAB /* GitLabServiceProtocol.swift */,
 				7395C71AED5D0C3409BA61E3 /* KeychainService.swift */,
@@ -252,6 +264,8 @@
 			files = (
 				E6C66007315D825CBD3EB427 /* AppDelegate.swift in Sources */,
 				C4A3B7ED708AF356677D6E98 /* AppSettings.swift in Sources */,
+				550487121E8649D723DC9C28 /* BranchResolver.swift in Sources */,
+				7A8D4FBEAEEBCBC3142F2698 /* BranchSelector.swift in Sources */,
 				5732A260A323DD8A140AF542 /* GitLabBranch.swift in Sources */,
 				B78AA7598554B4616C4B3334 /* GitLabMonitorApp.swift in Sources */,
 				01AF44D3CC4848009C61A8B5 /* GitLabProject.swift in Sources */,
@@ -273,6 +287,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3EFE3C4C707973B585E613AD /* BranchResolverTests.swift in Sources */,
+				4A04ADE0DD7F39AA8A40F6D8 /* BranchSelectorTests.swift in Sources */,
 				4D556C94174208B9201C6A69 /* GitLabServiceTests.swift in Sources */,
 				64DDF7DDC553BEAD7C1FC210 /* PipelinePollerTests.swift in Sources */,
 			);
