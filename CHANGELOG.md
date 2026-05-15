@@ -4,6 +4,22 @@
 
 ---
 
+## [0.1.3] — 2026-05-15
+
+### English
+
+#### Fixed
+- Restore configured repositories on app launch (states were not seeded from saved settings; the popover showed "no repositories" until the user re-opened Settings and saved again)
+- Manual refresh now bypasses the in-flight poll guard so the reload button always triggers a new poll (previously silently dropped when a slow poll was still pending, e.g. during a network stall)
+
+### 中文
+
+#### 修复
+- 启动时自动恢复已配置的仓库列表（之前未把保存的设置同步到运行时状态，导致弹窗显示"暂无仓库"，必须重新走一遍设置才能生效）
+- 手动刷新按钮跳过"轮询进行中"守卫，每次点击都立即触发新一轮抓取（之前网络卡住时，刷新会被静默丢弃）
+
+---
+
 ## [0.1.0] — 2026-04-03
 
 ### English
