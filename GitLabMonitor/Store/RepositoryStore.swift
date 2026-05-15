@@ -18,6 +18,10 @@ class RepositoryStore: ObservableObject {
     @Published var settings: AppSettings = .load()
     @Published var globalError: String? = nil
 
+    init() {
+        syncStates()
+    }
+
     func updateSettings(_ newSettings: AppSettings) {
         settings = newSettings
         settings.save()

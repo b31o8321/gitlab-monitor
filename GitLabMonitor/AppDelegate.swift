@@ -51,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func handleRefresh() {
         Task { @MainActor in
-            await poller.pollOnce(token: KeychainService.loadToken() ?? "")
+            await poller.pollOnce(token: KeychainService.loadToken() ?? "", manual: true)
         }
     }
 

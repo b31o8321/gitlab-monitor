@@ -32,8 +32,8 @@ class PipelinePoller {
         stopTimer()
     }
 
-    func pollOnce(token: String) async {
-        guard !isPolling else { return }
+    func pollOnce(token: String, manual: Bool = false) async {
+        if isPolling && !manual { return }
         isPolling = true
         defer { isPolling = false }
 
