@@ -1,0 +1,117 @@
+GitLab Monitor 安装与配置说明
+================================
+
+
+一、为什么打开会报"已损坏"或"无法验证开发者"？
+-----------------------------------------------
+本应用没有 Apple Developer ID 签名（付费证书，99 美元/年），
+macOS Gatekeeper 默认拒绝从浏览器下载的未签名应用。
+这不是病毒，是 Apple 的安全策略。绕过它只需要一行命令。
+
+
+二、安装步骤（共 3 步）
+-----------------------
+
+1. 把本窗口里的 GitLabMonitor 图标拖到右边的 Applications 文件夹。
+
+2. 打开 Terminal：启动台 → 其他 → 终端；或 Spotlight（Command+空格）搜 "Terminal"。
+
+3. 把下面这一整行粘贴到 Terminal，按回车：
+
+   xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
+
+完成后菜单栏右上角会出现 GitLab 图标（橙色狐狸 tanuki）。
+
+这条命令做了什么？
+- xattr -cr  : 清除 macOS 给浏览器下载文件打上的隔离标记
+- open       : 启动应用
+只需要执行一次。之后正常双击应用即可启动。
+
+
+三、首次配置
+------------
+
+点击菜单栏的 GitLab 图标 → 右上角齿轮（设置）。共两步。
+
+[第一步：连接设置]
+
+  字段           填什么
+  ----------    --------------------------------------------------
+  GitLab 地址    你公司 GitLab 的根地址，比如 https://git-web.shulex-tech.com
+                 （不要带 /api 后缀；末尾的 / 会自动去掉）
+  Access Token   GitLab 的 Personal Access Token（PAT），见下方"如何生成 Token"
+  轮询间隔       多久检查一次流水线状态，单位秒，最小 10，建议 60
+
+填好点 "下一步 →"。
+
+[如何生成 Personal Access Token]
+
+  1. 浏览器登录你的 GitLab
+  2. 右上角头像 → Edit profile → 左侧 Access Tokens
+     （直达：<你的 GitLab 地址>/-/profile/personal_access_tokens）
+  3. 点 "Add new token"
+  4. 填：
+     - Token name: gitlab-monitor （随便起）
+     - Expiration date: 选个合适的日期（GitLab 强制要求过期时间）
+     - Scopes: 勾选 read_api （只读，安全）
+  5. 点 "Create personal access token"
+  6. 立刻复制 token（以 glpat- 开头），离开页面就再也看不到了
+
+[第二步：选择要监控的仓库]
+
+  - 顶部搜索框输入仓库名（如 "shulex-cloud"），下面会列出匹配的项目。
+  - 点击项目即可勾选；可以同时选多个。
+  - 每个已选项目下面会显示"分支选择"，分三种模式（见下一节）。
+  - 配置完点右下角 "完成"。
+
+
+四、分支选择模式
+----------------
+
+每个仓库都要告诉应用"监控哪个分支的流水线"。共 3 种模式：
+
+[模式 1：固定分支]  最常用
+  下拉框直接选一个分支名，比如 main / staging / develop。
+  应用会一直监控这个分支最新一次流水线的状态。
+
+[模式 2：动态匹配最新]  适合日期命名的临时分支
+  填一个前缀 + 选日期格式，应用每次轮询都会自动找最新一条匹配的分支。
+  例：前缀 "test"，格式 YYYYMMDD → 匹配 test-20260326 / test-20260401 / ...
+       自动盯住日期最大的那条。
+
+  支持的日期格式：
+    YYYYMMDD          → test-20260326
+    YYYY-MM-DD        → test-2026-03-26
+    YYYY.MM.DD        → test-2026.03.26
+    YYYYMMDD-<尾缀>   → test-20260326-hotfix
+
+  典型用法：测试分支按日期切（test-20260326），监控"前缀 test, YYYYMMDD"
+            就总是盯当天最新的那条，不用手动改。
+
+[模式 3：自定义正则]  高级
+  直接写一个正则表达式，应用按正则匹配所有分支，取字典序最大（实际就是最新）。
+  例：^release-v\d+\.\d+\.\d+$
+  正则不熟就别选这个。
+
+
+五、菜单栏图标颜色 / 行内状态色含义
+----------------------------------
+  弹出窗口里每个仓库前面的小圆点：
+    绿色  通过 (success)
+    红色  失败 (failed)
+    黄色  运行中 / 等待 (running / pending)
+    灰色  已取消 / 未知 / 拉取出错 (canceled / unknown / error)
+
+  点弹窗里仓库这一行，会在浏览器打开对应的 pipeline 页面。
+
+
+六、刷新 / 退出
+---------------
+  弹窗右上角刷新按钮 → 立即触发一次抓取（即使后台还在轮询，也会强制刷一次）
+  菜单栏图标右键      → 退出 GitLab Monitor
+
+
+七、其他
+--------
+源代码 & 详细 README：https://github.com/b31o8321/gitlab-monitor
+反馈问题 / 提需求：    https://github.com/b31o8321/gitlab-monitor/issues

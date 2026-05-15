@@ -27,17 +27,18 @@ A lightweight macOS menu bar app that monitors your GitLab CI/CD pipeline status
 
 ### Installation
 
-1. Download `GitLabMonitor.dmg` from [Releases](https://github.com/b31o8321/gitlab-monitor/releases)
-2. Open the DMG
-3. **Double-click `Install.command`** — it copies the app to `/Applications`, clears the macOS quarantine flag, and launches it. A GitLab icon will appear in your menu bar.
+This app is **ad-hoc signed** (no paid Apple Developer ID), so macOS Gatekeeper rejects it on first launch with a misleading "**GitLabMonitor is damaged and can't be opened**" dialog. There's one extra step the first time:
 
-> **Why `Install.command`?** This app is ad-hoc signed (no paid Apple Developer ID), so when you download the DMG via a browser, macOS attaches a quarantine attribute that triggers a misleading "**GitLabMonitor is damaged and can't be opened**" dialog on first launch. `Install.command` removes that attribute. If macOS warns about the script on first run, right-click it → **Open** to allow execution.
->
-> Prefer manual install? Drag the app to `/Applications`, then run in Terminal:
->
-> ```bash
-> xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
-> ```
+1. Download `GitLabMonitor.dmg` from [Releases](https://github.com/b31o8321/gitlab-monitor/releases)
+2. Open the DMG, **drag `GitLabMonitor` into the `Applications` shortcut**
+3. Open **Terminal** and run:
+   ```bash
+   xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
+   ```
+
+`xattr -cr` clears the macOS quarantine flag set by your browser. You only need to run it once. After this the app launches like any other.
+
+> The DMG also contains `安装说明.txt` with a Chinese walkthrough of the same steps plus a configuration guide — useful when sharing this app inside your team.
 
 ### Getting a GitLab Personal Access Token
 
@@ -105,17 +106,18 @@ xcodebuild test -scheme GitLabMonitor -destination 'platform=macOS'
 
 ### 安装
 
-1. 从 [Releases](https://github.com/b31o8321/gitlab-monitor/releases) 下载 `GitLabMonitor.dmg`
-2. 打开 DMG
-3. **双击 `Install.command`** —— 脚本会自动把 app 复制到 `/Applications`、清除 macOS 隔离属性、并启动应用。菜单栏出现 GitLab 图标即为成功。
+本应用使用 **ad-hoc 签名**（没有付费的 Apple Developer ID），从浏览器下载 DMG 后 macOS Gatekeeper 默认拒绝运行，会报 **""GitLabMonitor" 已损坏，无法打开"**。首次安装需要多走一步：
 
-> **为什么需要 `Install.command`？** 本应用使用 ad-hoc 签名（没有付费的 Apple Developer ID），从浏览器下载 DMG 后 macOS 会自动打上 quarantine 标记，首次打开会报"**"GitLabMonitor"已损坏，无法打开**"。`Install.command` 会清掉该标记。如果首次运行脚本时 macOS 拦截，**右键脚本 → 打开** 即可放行。
->
-> 想手动安装？把 app 拖到 `/Applications`，然后在 Terminal 执行：
->
-> ```bash
-> xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
-> ```
+1. 从 [Releases](https://github.com/b31o8321/gitlab-monitor/releases) 下载 `GitLabMonitor.dmg`
+2. 打开 DMG，把 `GitLabMonitor` 图标**拖到 `Applications` 快捷方式**里
+3. 打开 **Terminal**（启动台 → 其他 → 终端，或 Spotlight 搜 "Terminal"），粘贴这一行回车：
+   ```bash
+   xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
+   ```
+
+`xattr -cr` 用来清除浏览器下载时打上的 macOS 隔离标记。**只需要执行这一次**，之后双击应用就能正常打开。
+
+> DMG 内还有一份 `安装说明.txt`，包含安装步骤、Token 生成方法、URL 配置位置、分支匹配模式（固定 / 按日期前缀动态匹配最新 / 自定义正则）等中文说明，发给同事用比较省心。
 
 ### 生成 GitLab Personal Access Token
 

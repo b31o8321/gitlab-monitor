@@ -4,6 +4,22 @@
 
 ---
 
+## [0.1.5] — 2026-05-15
+
+### English
+
+#### Changed
+- Replaced the v0.1.4 `Install.command` bundled in the DMG with a Chinese-language `安装说明.txt`. On macOS Sequoia, unsigned `.command` scripts hit the same Gatekeeper wall as the app itself, making the "one-click" promise misleading. The text file now spells out the manual `xattr -cr` step plus a full configuration walkthrough (GitLab URL, Personal Access Token creation, branch matching modes, status colors)
+- README install section rewritten to lead with the `xattr -cr` one-liner as the canonical install path
+
+### 中文
+
+#### 变更
+- v0.1.4 在 DMG 里放的 `Install.command` 在 macOS Sequoia 上同样会被 Gatekeeper 拦截，所谓"一键"名不副实，已移除。改为附带中文 `安装说明.txt`，写清楚手动 `xattr -cr` 命令、Token 生成步骤、URL 配置位置、分支匹配模式（固定 / 动态日期 / 自定义正则）、状态颜色含义等
+- README 安装段落重写，直接以 `xattr -cr` 一行命令为主流程
+
+---
+
 ## [0.1.4] — 2026-05-15
 
 ### English
