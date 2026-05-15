@@ -33,6 +33,8 @@ jobs:
         run: |
           mkdir /tmp/dmg-staging
           cp -r /tmp/GitLabMonitor.xcarchive/Products/Applications/GitLabMonitor.app /tmp/dmg-staging/
+          cp scripts/Install.command /tmp/dmg-staging/
+          chmod +x /tmp/dmg-staging/Install.command
           ln -sf /Applications /tmp/dmg-staging/Applications
           hdiutil create \
             -volname "GitLabMonitor" \

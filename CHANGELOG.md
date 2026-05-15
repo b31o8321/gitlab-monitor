@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### English
+
+#### Added
+- `Install.command` bundled inside the DMG: one-click installer that copies the app to `/Applications`, clears the quarantine attribute, and launches it — avoids the misleading "damaged" dialog on internal distribution
+
+#### Docs
+- README documents the new `Install.command` flow and the manual `xattr -cr` fallback
+
+### 中文
+
+#### 新增
+- DMG 内附带 `Install.command` 一键安装脚本：自动复制到 `/Applications`、清除 macOS 隔离属性并启动，规避内部分发时 "已损坏" 的误报弹窗
+
+#### 文档
+- README 新增 `Install.command` 安装流程说明，以及手动 `xattr -cr` 备选方案
+
 ---
 
 ## [0.1.3] — 2026-05-15

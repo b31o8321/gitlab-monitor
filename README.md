@@ -28,10 +28,16 @@ A lightweight macOS menu bar app that monitors your GitLab CI/CD pipeline status
 ### Installation
 
 1. Download `GitLabMonitor.dmg` from [Releases](https://github.com/b31o8321/gitlab-monitor/releases)
-2. Open the DMG and drag **GitLabMonitor.app** to your **Applications** folder
-3. Launch the app — a GitLab icon appears in your menu bar
+2. Open the DMG
+3. **Double-click `Install.command`** — it copies the app to `/Applications`, clears the macOS quarantine flag, and launches it. A GitLab icon will appear in your menu bar.
 
-> **First launch on macOS:** If you see "cannot be opened because the developer cannot be verified", go to **System Settings → Privacy & Security** and click **Open Anyway**.
+> **Why `Install.command`?** This app is ad-hoc signed (no paid Apple Developer ID), so when you download the DMG via a browser, macOS attaches a quarantine attribute that triggers a misleading "**GitLabMonitor is damaged and can't be opened**" dialog on first launch. `Install.command` removes that attribute. If macOS warns about the script on first run, right-click it → **Open** to allow execution.
+>
+> Prefer manual install? Drag the app to `/Applications`, then run in Terminal:
+>
+> ```bash
+> xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
+> ```
 
 ### Getting a GitLab Personal Access Token
 
@@ -100,10 +106,16 @@ xcodebuild test -scheme GitLabMonitor -destination 'platform=macOS'
 ### 安装
 
 1. 从 [Releases](https://github.com/b31o8321/gitlab-monitor/releases) 下载 `GitLabMonitor.dmg`
-2. 打开 DMG，将 **GitLabMonitor.app** 拖入 **应用程序** 文件夹
-3. 启动应用，菜单栏出现 GitLab 图标即为成功
+2. 打开 DMG
+3. **双击 `Install.command`** —— 脚本会自动把 app 复制到 `/Applications`、清除 macOS 隔离属性、并启动应用。菜单栏出现 GitLab 图标即为成功。
 
-> **首次启动提示：** 如果出现"无法验证开发者"的提示，前往 **系统设置 → 隐私与安全性**，点击 **仍要打开**。
+> **为什么需要 `Install.command`？** 本应用使用 ad-hoc 签名（没有付费的 Apple Developer ID），从浏览器下载 DMG 后 macOS 会自动打上 quarantine 标记，首次打开会报"**"GitLabMonitor"已损坏，无法打开**"。`Install.command` 会清掉该标记。如果首次运行脚本时 macOS 拦截，**右键脚本 → 打开** 即可放行。
+>
+> 想手动安装？把 app 拖到 `/Applications`，然后在 Terminal 执行：
+>
+> ```bash
+> xattr -cr /Applications/GitLabMonitor.app && open /Applications/GitLabMonitor.app
+> ```
 
 ### 生成 GitLab Personal Access Token
 
