@@ -10,7 +10,6 @@ struct ProjectSearchView: View {
     @State private var searchResults: [GitLabProject] = []
     @State private var loadingState: LoadState = .idle
     @State private var errorMessage: String = ""
-    @State private var branchState: [Int: BranchLoad] = [:]
     @State private var searchTask: Task<Void, Never>?
 
     enum LoadState {
@@ -19,12 +18,6 @@ struct ProjectSearchView: View {
 
     private var normalizedUrl: String {
         gitlabUrl.hasSuffix("/") ? String(gitlabUrl.dropLast()) : gitlabUrl
-    }
-
-    struct BranchLoad {
-        var branches: [String] = []
-        var loading: Bool = false
-        var failed: Bool = false
     }
 
     var body: some View {
@@ -59,8 +52,7 @@ struct ProjectSearchView: View {
                     if !selectedRepos.isEmpty {
                         sectionHeader("已选择")
                         ForEach(selectedRepos) { repo in
-                            let project = searchResults.first { $0.pathWithNamespace == repo.projectPath }
-                            selectedRepoCard(repo: repo, projectId: project?.id)
+                            selectedRepoCard(repo: repo)
                             Divider().padding(.leading, 40)
                         }
                     }
@@ -158,7 +150,7 @@ struct ProjectSearchView: View {
     // MARK: - Selected (with branch mode picker)
 
     @ViewBuilder
-    private func selectedRepoCard(repo: Repository, projectId: Int?) -> some View {
+    private func selectedRepoCard(repo: Repository) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.square.fill")
@@ -182,16 +174,22 @@ struct ProjectSearchView: View {
 
             BranchSelectorEditor(
                 repo: repo,
-                projectId: projectId,
-                branchState: branchState[projectId ?? -1],
                 onSelectorChange: { newSelector in
                     if let idx = selectedRepos.firstIndex(where: { $0.id == repo.id }) {
                         selectedRepos[idx].branchSelector = newSelector
                     }
                 },
-                onLoadBranches: {
-                    if let pid = projectId, branchState[pid] == nil {
-                        loadBranches(projectId: pid)
+                searchBranches: { term in
+                    do {
+                        let branches = try await service.fetchBranches(
+                            gitlabUrl: normalizedUrl,
+                            token: token,
+                            projectPath: repo.projectPath,
+                            search: term.isEmpty ? nil : term
+                        )
+                        return branches.map(\.name)
+                    } catch {
+                        return []
                     }
                 }
             )
@@ -210,9 +208,6 @@ struct ProjectSearchView: View {
             let initialBranch = defaultBranch ?? "main"
             let repo = Repository(name: name, projectPath: pathWithNamespace, branchSelector: .fixed(initialBranch))
             selectedRepos.append(repo)
-            if let pid = projectId, branchState[pid] == nil {
-                loadBranches(projectId: pid)
-            }
         }
     }
 
@@ -246,36 +241,14 @@ struct ProjectSearchView: View {
         }
     }
 
-    private func loadBranches(projectId: Int) {
-        branchState[projectId] = BranchLoad(loading: true)
-        Task {
-            do {
-                let branches = try await service.fetchBranches(
-                    gitlabUrl: normalizedUrl,
-                    token: token,
-                    projectId: projectId
-                )
-                let names = branches.map { $0.name }
-                await MainActor.run {
-                    branchState[projectId] = BranchLoad(branches: names, loading: false, failed: false)
-                }
-            } catch {
-                await MainActor.run {
-                    branchState[projectId] = BranchLoad(failed: true)
-                }
-            }
-        }
-    }
 }
 
 // MARK: - BranchSelectorEditor
 
 private struct BranchSelectorEditor: View {
     let repo: Repository
-    let projectId: Int?
-    let branchState: ProjectSearchView.BranchLoad?
     let onSelectorChange: (BranchSelector) -> Void
-    let onLoadBranches: () -> Void
+    let searchBranches: (String) async -> [String]
 
     enum Mode: String, CaseIterable, Identifiable {
         case fixed = "固定分支"
@@ -290,6 +263,13 @@ private struct BranchSelectorEditor: View {
     @State private var ruleFormat: BranchDateFormat = .yyyymmdd
     @State private var regexPattern: String = "^test-\\d{8}$"
     @State private var initialized: Bool = false
+
+    @State private var suggestions: [String] = []
+    @State private var suggestionsLoading: Bool = false
+    @State private var showSuggestions: Bool = false
+    @State private var suggestQuery: String = ""
+    @State private var suggestTask: Task<Void, Never>? = nil
+    @FocusState private var fixedFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -319,18 +299,119 @@ private struct BranchSelectorEditor: View {
 
     @ViewBuilder
     private var fixedSection: some View {
-        if let load = branchState, !load.branches.isEmpty {
-            Picker("", selection: $fixedBranch) {
-                ForEach(load.branches, id: \.self) { Text($0).tag($0) }
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                TextField("分支名（输入可搜索）", text: $fixedBranch)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($fixedFieldFocused)
+                    .onChange(of: fixedBranch) { newValue in
+                        scheduleBranchSearch(newValue)
+                    }
+                    .onChange(of: fixedFieldFocused) { focused in
+                        if focused {
+                            showSuggestions = true
+                            if suggestions.isEmpty && !suggestionsLoading {
+                                scheduleBranchSearch(fixedBranch)
+                            }
+                        } else {
+                            hideSuggestionsAfterDelay()
+                        }
+                    }
+                Button {
+                    showSuggestions.toggle()
+                    if showSuggestions && suggestions.isEmpty && !suggestionsLoading {
+                        scheduleBranchSearch(fixedBranch)
+                    }
+                } label: {
+                    Image(systemName: showSuggestions ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
             }
-            .labelsHidden()
-        } else if branchState?.loading == true {
-            HStack { ProgressView().scaleEffect(0.5); Text("加载分支...").foregroundColor(.secondary) }
-                .onAppear { onLoadBranches() }
-        } else {
-            TextField("分支名", text: $fixedBranch)
-                .textFieldStyle(.roundedBorder)
-                .onAppear { onLoadBranches() }
+
+            if showSuggestions {
+                suggestionList
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var suggestionList: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if suggestionsLoading && suggestions.isEmpty {
+                HStack {
+                    ProgressView().scaleEffect(0.5)
+                    Text("加载分支...").foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+            } else if suggestions.isEmpty {
+                Text(suggestQuery.isEmpty ? "（无分支）" : "未找到匹配分支")
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(suggestions, id: \.self) { branch in
+                            Button {
+                                fixedBranch = branch
+                                showSuggestions = false
+                                fixedFieldFocused = false
+                            } label: {
+                                HStack {
+                                    Text(branch)
+                                        .foregroundColor(branch == fixedBranch ? .accentColor : .primary)
+                                    Spacer()
+                                    if branch == fixedBranch {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.accentColor)
+                                    }
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .frame(maxHeight: 140)
+            }
+        }
+        .background(Color(NSColor.controlBackgroundColor))
+        .cornerRadius(4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4)
+                .stroke(Color.secondary.opacity(0.3))
+        )
+    }
+
+    private func scheduleBranchSearch(_ term: String) {
+        suggestTask?.cancel()
+        suggestQuery = term
+        let captured = term
+        suggestTask = Task {
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            if Task.isCancelled { return }
+            await MainActor.run { suggestionsLoading = true }
+            let results = await searchBranches(captured)
+            if Task.isCancelled { return }
+            await MainActor.run {
+                suggestions = results
+                suggestionsLoading = false
+            }
+        }
+    }
+
+    private func hideSuggestionsAfterDelay() {
+        Task {
+            try? await Task.sleep(nanoseconds: 180_000_000)
+            await MainActor.run {
+                if !fixedFieldFocused {
+                    showSuggestions = false
+                }
+            }
         }
     }
 

@@ -4,6 +4,20 @@
 
 ---
 
+## [0.1.6] — 2026-05-18
+
+### English
+
+#### Changed
+- "Fixed branch" selector in Settings is now a searchable combobox (text input + suggestion list) instead of a flat dropdown. Branches are fetched via GitLab's `?search=` parameter on each keystroke (debounced), so projects with hundreds of branches no longer hide behind a per_page=100 cap. The dropdown caret toggles the list; selecting an item fills the field and dismisses the list.
+
+### 中文
+
+#### 变更
+- 设置里"固定分支"改成可搜索输入框 + 候选列表（替代原来的下拉菜单）。输入时通过 GitLab API 的 `?search=` 参数实时查询（300ms 防抖），不再受 100 个分支的硬上限限制。点右边的箭头按钮也可以展开/收起列表，点击候选项填入输入框并自动关闭。
+
+---
+
 ## [0.1.5] — 2026-05-15
 
 ### English
