@@ -9,7 +9,7 @@ struct RepositoryRowView: View {
                 Circle()
                     .fill(state.status.color)
                     .frame(width: 10, height: 10)
-                Text(state.repository.name)
+                Text(state.repositoryName)
                     .fontWeight(.medium)
                 Spacer()
                 Text(branchLabel)
@@ -119,6 +119,6 @@ struct RepositoryRowView: View {
         if let resolved = state.resolvedBranch {
             return resolved
         }
-        return state.repository.branchSelector.displayHint
+        return state.selector.displayHint
     }
 }

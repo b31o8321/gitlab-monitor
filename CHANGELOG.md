@@ -4,6 +4,36 @@
 
 ---
 
+## [0.1.10] — 2026-05-19
+
+### English
+
+#### Added
+- Multi-branch monitoring per project. `Repository` now carries a `branches: [BranchWatch]` array instead of a single `branchSelector`. Each `BranchWatch` has a stable UUID and its own selector, so one project can produce N independent rows in the popover — each with its own status, progress bar, and resolved branch label.
+- Settings → 已选 卡片新增 "+ 添加分支" 按钮，每条分支前面带独立的 "-" 删除按钮（只有 ≥2 个分支时显示）。
+
+#### Changed
+- Runtime `RepositoryState` is now keyed by `BranchWatch.id` (one state per branch watch) rather than `Repository.id`, so state survives reorderings, selector edits, and branch additions.
+- Pipeline poller iterates `(repo × branches)` pairs and applies results / errors by branch id.
+
+#### Migration
+- Repository decoding handles three formats transparently via `init(from:)` — new `branches` key, legacy `branchSelector`, and oldest `branch: "main"`. Existing UserDefaults from v0.1.0 – v0.1.9 are auto-migrated to one `BranchWatch` per repository on first load; the new format is written back on the next save (no explicit migration script, no user action needed).
+
+### 中文
+
+#### 新增
+- 同一个项目可以监听多个分支。`Repository` 从单个 `branchSelector` 改成 `branches: [BranchWatch]`，每个分支有独立 UUID 和 selector，在弹窗里就是独立的一行（独立状态、独立进度条、独立分支标签）。
+- 设置里"已选"卡片每个项目新增「+ 添加分支」按钮；存在 ≥2 个分支时每行旁边有独立的删除按钮。
+
+#### 变更
+- 运行时 `RepositoryState` 按 `BranchWatch.id`（每个分支一个）寻址，而不是按 `Repository.id`；分支增删、重排序、选择器修改后状态保持不丢。
+- 轮询按 (repo × branches) 二维展开，结果/错误按分支 id 写回。
+
+#### 迁移
+- `Repository` 的 `init(from:)` 同时识别三种格式：新的 `branches` 字段、v0.1.0–v0.1.9 的单个 `branchSelector`、和最古老的 `branch: "main"`。老 UserDefaults 在第一次加载时自动转成"每个 repo 一个 BranchWatch"，下次任何 save 写回新格式。无需脚本、无需用户操作。
+
+---
+
 ## [0.1.9] — 2026-05-19
 
 ### English

@@ -40,32 +40,39 @@ class PipelinePoller {
         let settings = store.settings
         await withTaskGroup(of: Void.self) { group in
             for repo in settings.repositories {
-                group.addTask { @MainActor in
-                    await self.pollRepository(repo, gitlabUrl: settings.gitlabUrl, token: token)
+                for watch in repo.branches {
+                    group.addTask { @MainActor in
+                        await self.pollBranch(
+                            repo: repo,
+                            watch: watch,
+                            gitlabUrl: settings.gitlabUrl,
+                            token: token
+                        )
+                    }
                 }
             }
         }
     }
 
-    private func pollRepository(_ repo: Repository, gitlabUrl: String, token: String) async {
+    private func pollBranch(repo: Repository, watch: BranchWatch, gitlabUrl: String, token: String) async {
         let resolvedBranch: String?
         do {
             resolvedBranch = try await resolver.resolve(
-                selector: repo.branchSelector,
+                selector: watch.selector,
                 gitlabUrl: gitlabUrl,
                 projectPath: repo.projectPath,
                 token: token
             )
         } catch let error as GitLabError {
-            store.applyError(error, for: repo.id)
+            store.applyError(error, forBranch: watch.id)
             return
         } catch {
-            store.applyError(.networkError(error), for: repo.id)
+            store.applyError(.networkError(error), forBranch: watch.id)
             return
         }
 
         guard let branch = resolvedBranch else {
-            store.applyError(.noBranchMatch, for: repo.id)
+            store.applyError(.noBranchMatch, forBranch: watch.id)
             return
         }
 
@@ -90,11 +97,11 @@ class PipelinePoller {
                     baseline = durations.reduce(0, +) / TimeInterval(durations.count)
                 }
             }
-            store.applyResult(result, resolvedBranch: branch, baselineDuration: baseline, for: repo.id)
+            store.applyResult(result, resolvedBranch: branch, baselineDuration: baseline, forBranch: watch.id)
         } catch let error as GitLabError {
-            store.applyError(error, for: repo.id, resolvedBranch: branch)
+            store.applyError(error, forBranch: watch.id, resolvedBranch: branch)
         } catch {
-            store.applyError(.networkError(error), for: repo.id, resolvedBranch: branch)
+            store.applyError(.networkError(error), forBranch: watch.id, resolvedBranch: branch)
         }
     }
 

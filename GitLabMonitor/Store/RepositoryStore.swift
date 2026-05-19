@@ -1,8 +1,15 @@
 import Foundation
 import SwiftUI
 
+/// Runtime state of a single branch being watched. Identity is the
+/// `BranchWatch.id`, not the parent `Repository.id`, so we get one row in the
+/// popover per branch even when a project has multiple branch watches.
 struct RepositoryState: Identifiable {
-    let repository: Repository
+    let id: UUID                  // == BranchWatch.id
+    let repositoryId: UUID
+    let repositoryName: String
+    let projectPath: String
+    var selector: BranchSelector
     var status: PipelineStatus
     var resolvedBranch: String?
     var webUrl: String?
@@ -10,8 +17,6 @@ struct RepositoryState: Identifiable {
     var startedAt: Date?
     var baselineDuration: TimeInterval?
     var errorMessage: String?
-
-    var id: UUID { repository.id }
 }
 
 @MainActor
@@ -36,8 +41,8 @@ class RepositoryStore: ObservableObject {
         syncStates()
     }
 
-    func applyResult(_ result: PipelineResult, resolvedBranch: String, baselineDuration: TimeInterval?, for repositoryId: UUID) {
-        guard let index = states.firstIndex(where: { $0.id == repositoryId }) else { return }
+    func applyResult(_ result: PipelineResult, resolvedBranch: String, baselineDuration: TimeInterval?, forBranch branchId: UUID) {
+        guard let index = states.firstIndex(where: { $0.id == branchId }) else { return }
         states[index].status = result.status
         states[index].webUrl = result.webUrl
         states[index].updatedAt = result.updatedAt
@@ -49,8 +54,8 @@ class RepositoryStore: ObservableObject {
         NotificationCenter.default.post(name: .repositoryStateDidChange, object: nil)
     }
 
-    func applyError(_ error: GitLabError, for repositoryId: UUID, resolvedBranch: String? = nil) {
-        guard let index = states.firstIndex(where: { $0.id == repositoryId }) else { return }
+    func applyError(_ error: GitLabError, forBranch branchId: UUID, resolvedBranch: String? = nil) {
+        guard let index = states.firstIndex(where: { $0.id == branchId }) else { return }
         states[index].status = .unknown
         states[index].errorMessage = errorMessage(for: error)
         if let resolvedBranch {
@@ -72,9 +77,46 @@ class RepositoryStore: ObservableObject {
 
     private func syncStates() {
         let existing = Dictionary(uniqueKeysWithValues: states.map { ($0.id, $0) })
-        states = settings.repositories.map { repo in
-            existing[repo.id] ?? RepositoryState(repository: repo, status: .unknown)
+        var built: [RepositoryState] = []
+        for repo in settings.repositories {
+            for watch in repo.branches {
+                if var prior = existing[watch.id] {
+                    // Repo metadata or the selector may have changed in Settings;
+                    // refresh those but keep the live status fields intact.
+                    prior.selector = watch.selector
+                    built.append(RepositoryState(
+                        id: watch.id,
+                        repositoryId: repo.id,
+                        repositoryName: repo.name,
+                        projectPath: repo.projectPath,
+                        selector: watch.selector,
+                        status: prior.status,
+                        resolvedBranch: prior.resolvedBranch,
+                        webUrl: prior.webUrl,
+                        updatedAt: prior.updatedAt,
+                        startedAt: prior.startedAt,
+                        baselineDuration: prior.baselineDuration,
+                        errorMessage: prior.errorMessage
+                    ))
+                } else {
+                    built.append(RepositoryState(
+                        id: watch.id,
+                        repositoryId: repo.id,
+                        repositoryName: repo.name,
+                        projectPath: repo.projectPath,
+                        selector: watch.selector,
+                        status: .unknown,
+                        resolvedBranch: nil,
+                        webUrl: nil,
+                        updatedAt: nil,
+                        startedAt: nil,
+                        baselineDuration: nil,
+                        errorMessage: nil
+                    ))
+                }
+            }
         }
+        states = built
     }
 
     private func errorMessage(for error: GitLabError) -> String {

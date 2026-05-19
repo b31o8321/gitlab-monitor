@@ -57,7 +57,7 @@ struct ProjectSearchView: View {
                         }
                     }
 
-                    // Search results (excluding already-selected)
+                    // Search results (excluding already-selected by projectPath)
                     let unselected = searchResults.filter { p in
                         !selectedRepos.contains { $0.projectPath == p.pathWithNamespace }
                     }
@@ -143,11 +143,11 @@ struct ProjectSearchView: View {
         .padding(.vertical, 6)
         .contentShape(Rectangle())
         .onTapGesture {
-            toggleSelection(projectId: project.id, pathWithNamespace: project.pathWithNamespace, name: project.name, defaultBranch: project.defaultBranch)
+            addProject(pathWithNamespace: project.pathWithNamespace, name: project.name, defaultBranch: project.defaultBranch)
         }
     }
 
-    // MARK: - Selected (with branch mode picker)
+    // MARK: - Selected (with N branch editors)
 
     @ViewBuilder
     private func selectedRepoCard(repo: Repository) -> some View {
@@ -162,53 +162,98 @@ struct ProjectSearchView: View {
                 }
                 Spacer()
                 Button {
-                    if let idx = selectedRepos.firstIndex(where: { $0.id == repo.id }) {
-                        selectedRepos.remove(at: idx)
-                    }
+                    selectedRepos.removeAll { $0.id == repo.id }
                 } label: {
                     Image(systemName: "xmark.circle")
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
+                .help("移除该项目")
             }
 
-            BranchSelectorEditor(
-                repo: repo,
-                onSelectorChange: { newSelector in
-                    if let idx = selectedRepos.firstIndex(where: { $0.id == repo.id }) {
-                        selectedRepos[idx].branchSelector = newSelector
-                    }
-                },
-                searchBranches: { term in
-                    do {
-                        let branches = try await service.fetchBranches(
-                            gitlabUrl: normalizedUrl,
-                            token: token,
-                            projectPath: repo.projectPath,
-                            search: term.isEmpty ? nil : term
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(repo.branches) { watch in
+                    HStack(alignment: .top, spacing: 6) {
+                        BranchSelectorEditor(
+                            initialSelector: watch.selector,
+                            onSelectorChange: { newSelector in
+                                updateSelector(repoId: repo.id, branchId: watch.id, newSelector: newSelector)
+                            },
+                            searchBranches: { term in
+                                do {
+                                    let branches = try await service.fetchBranches(
+                                        gitlabUrl: normalizedUrl,
+                                        token: token,
+                                        projectPath: repo.projectPath,
+                                        search: term.isEmpty ? nil : term
+                                    )
+                                    return branches.map(\.name)
+                                } catch {
+                                    return []
+                                }
+                            }
                         )
-                        return branches.map(\.name)
-                    } catch {
-                        return []
+                        if repo.branches.count > 1 {
+                            Button {
+                                removeBranch(repoId: repo.id, branchId: watch.id)
+                            } label: {
+                                Image(systemName: "minus.circle")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .help("移除该分支")
+                        }
                     }
                 }
-            )
+                Button {
+                    addBranch(repoId: repo.id)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle")
+                        Text("添加分支").font(.caption)
+                    }
+                    .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+            }
             .padding(.leading, 30)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
     }
 
-    // MARK: - Selection state
+    // MARK: - Selection / branch mutation
 
-    private func toggleSelection(projectId: Int?, pathWithNamespace: String, name: String, defaultBranch: String?) {
-        if let idx = selectedRepos.firstIndex(where: { $0.projectPath == pathWithNamespace }) {
+    private func addProject(pathWithNamespace: String, name: String, defaultBranch: String?) {
+        // If already present, do nothing (user can use "+ 添加分支" inside the card).
+        if selectedRepos.contains(where: { $0.projectPath == pathWithNamespace }) { return }
+        let initialBranch = defaultBranch ?? "main"
+        selectedRepos.append(Repository(
+            name: name,
+            projectPath: pathWithNamespace,
+            branchSelector: .fixed(initialBranch)
+        ))
+    }
+
+    private func addBranch(repoId: UUID) {
+        guard let idx = selectedRepos.firstIndex(where: { $0.id == repoId }) else { return }
+        // New watches default to fixed "main" — user picks the branch via the editor.
+        selectedRepos[idx].branches.append(BranchWatch(selector: .fixed("main")))
+    }
+
+    private func removeBranch(repoId: UUID, branchId: UUID) {
+        guard let idx = selectedRepos.firstIndex(where: { $0.id == repoId }) else { return }
+        selectedRepos[idx].branches.removeAll { $0.id == branchId }
+        // If the user removed the last branch, treat that as removing the project.
+        if selectedRepos[idx].branches.isEmpty {
             selectedRepos.remove(at: idx)
-        } else {
-            let initialBranch = defaultBranch ?? "main"
-            let repo = Repository(name: name, projectPath: pathWithNamespace, branchSelector: .fixed(initialBranch))
-            selectedRepos.append(repo)
         }
+    }
+
+    private func updateSelector(repoId: UUID, branchId: UUID, newSelector: BranchSelector) {
+        guard let repoIdx = selectedRepos.firstIndex(where: { $0.id == repoId }) else { return }
+        guard let branchIdx = selectedRepos[repoIdx].branches.firstIndex(where: { $0.id == branchId }) else { return }
+        selectedRepos[repoIdx].branches[branchIdx].selector = newSelector
     }
 
     // MARK: - Loaders
@@ -246,7 +291,7 @@ struct ProjectSearchView: View {
 // MARK: - BranchSelectorEditor
 
 private struct BranchSelectorEditor: View {
-    let repo: Repository
+    let initialSelector: BranchSelector
     let onSelectorChange: (BranchSelector) -> Void
     let searchBranches: (String) async -> [String]
 
@@ -263,6 +308,7 @@ private struct BranchSelectorEditor: View {
     @State private var ruleFormat: BranchDateFormat = .yyyymmdd
     @State private var regexPattern: String = "^test-\\d{8}$"
     @State private var initialized: Bool = false
+    @State private var lastPublished: BranchSelector? = nil
 
     @State private var suggestions: [String] = []
     @State private var suggestionsLoading: Bool = false
@@ -445,7 +491,8 @@ private struct BranchSelectorEditor: View {
     private func initializeFromSelector() {
         guard !initialized else { return }
         initialized = true
-        switch repo.branchSelector {
+        lastPublished = initialSelector
+        switch initialSelector {
         case .fixed(let name):
             mode = .fixed
             fixedBranch = name
@@ -467,7 +514,8 @@ private struct BranchSelectorEditor: View {
         case .rule: selector = .rule(prefix: rulePrefix, format: ruleFormat)
         case .regex: selector = .regex(regexPattern)
         }
-        if selector != repo.branchSelector {
+        if selector != lastPublished {
+            lastPublished = selector
             onSelectorChange(selector)
         }
     }

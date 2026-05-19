@@ -63,17 +63,20 @@ final class BranchSelectorTests: XCTestCase {
         XCTAssertNil(BranchSelector.regex(".+").searchPrefix)
     }
 
-    // MARK: Repository legacy decoding
+    // MARK: Repository legacy decoding (migrates older fields to `branches`)
 
-    func testRepositoryDecodesLegacyBranchField() throws {
+    func testRepositoryDecodesOldestLegacyBranchField() throws {
+        // Pre-v0.1.0: `branch: "staging"`
         let json = """
         {"id":"\(UUID().uuidString)","name":"svc","projectPath":"group/svc","branch":"staging"}
         """.data(using: .utf8)!
         let repo = try JSONDecoder().decode(Repository.self, from: json)
-        XCTAssertEqual(repo.branchSelector, .fixed("staging"))
+        XCTAssertEqual(repo.branches.count, 1)
+        XCTAssertEqual(repo.branches.first?.selector, .fixed("staging"))
     }
 
-    func testRepositoryDecodesNewSelectorField() throws {
+    func testRepositoryDecodesV01LegacySingleSelector() throws {
+        // v0.1.0 – v0.1.9: single `branchSelector`
         let json = """
         {
           "id":"\(UUID().uuidString)",
@@ -83,7 +86,29 @@ final class BranchSelectorTests: XCTestCase {
         }
         """.data(using: .utf8)!
         let repo = try JSONDecoder().decode(Repository.self, from: json)
-        XCTAssertEqual(repo.branchSelector, .rule(prefix: "test", format: .yyyymmdd))
+        XCTAssertEqual(repo.branches.count, 1)
+        XCTAssertEqual(repo.branches.first?.selector, .rule(prefix: "test", format: .yyyymmdd))
+    }
+
+    func testRepositoryDecodesNewBranchesArray() throws {
+        // v0.1.10+: `branches: [{ id, selector }]`
+        let branchId = UUID()
+        let json = """
+        {
+          "id":"\(UUID().uuidString)",
+          "name":"svc",
+          "projectPath":"group/svc",
+          "branches":[
+            {"id":"\(branchId.uuidString)","selector":{"type":"fixed","value":"main"}},
+            {"id":"\(UUID().uuidString)","selector":{"type":"rule","prefix":"staging","format":"yyyymmdd"}}
+          ]
+        }
+        """.data(using: .utf8)!
+        let repo = try JSONDecoder().decode(Repository.self, from: json)
+        XCTAssertEqual(repo.branches.count, 2)
+        XCTAssertEqual(repo.branches[0].id, branchId)
+        XCTAssertEqual(repo.branches[0].selector, .fixed("main"))
+        XCTAssertEqual(repo.branches[1].selector, .rule(prefix: "staging", format: .yyyymmdd))
     }
 
     func testRepositoryRoundTripWritesNewFormat() throws {
@@ -91,9 +116,10 @@ final class BranchSelectorTests: XCTestCase {
         let data = try JSONEncoder().encode(repo)
         let decoded = try JSONDecoder().decode(Repository.self, from: data)
         XCTAssertEqual(decoded, repo)
-        // Ensure we don't write the legacy `branch` key
+        // Ensure new format keys are present and legacy keys are not written back.
         let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         XCTAssertNil(dict?["branch"])
-        XCTAssertNotNil(dict?["branchSelector"])
+        XCTAssertNil(dict?["branchSelector"])
+        XCTAssertNotNil(dict?["branches"])
     }
 }
