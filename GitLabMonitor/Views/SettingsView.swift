@@ -88,6 +88,12 @@ struct SettingsView: View {
                 } header: {
                     Text("轮询间隔")
                 }
+
+                Section {
+                    UpdateCheckRow()
+                } header: {
+                    Text("应用更新")
+                }
             }
             .formStyle(.grouped)
 
@@ -157,5 +163,80 @@ struct SettingsView: View {
         settings.repositories = selectedRepos
         store.updateSettings(settings)
         dismiss()
+    }
+}
+
+private struct UpdateCheckRow: View {
+    @ObservedObject var updates: UpdateManager = .shared
+
+    private var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("当前版本：v\(currentVersion)")
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button(action: checkNow) {
+                    if case .checking = updates.state {
+                        ProgressView().scaleEffect(0.5)
+                    } else {
+                        Text("检查更新")
+                    }
+                }
+                .disabled(isBusy)
+            }
+            statusLine
+        }
+    }
+
+    private var isBusy: Bool {
+        switch updates.state {
+        case .checking, .downloading: return true
+        default: return false
+        }
+    }
+
+    @ViewBuilder
+    private var statusLine: some View {
+        switch updates.state {
+        case .updateAvailable(let info):
+            Text("发现新版本 v\(info.version)（点击菜单栏弹窗顶部的「更新」按钮安装）")
+                .font(.caption2)
+                .foregroundColor(.accentColor)
+        case .upToDate:
+            if let date = updates.lastCheck {
+                Text("已是最新版（\(relativeFormatter.localizedString(for: date, relativeTo: Date()))检查）")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            } else {
+                Text("已是最新版")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        case .downloading:
+            Text("正在下载更新…")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        case .error(let msg):
+            Text("检查失败：\(msg)")
+                .font(.caption2)
+                .foregroundColor(.red)
+                .lineLimit(2)
+        default:
+            EmptyView()
+        }
+    }
+
+    private var relativeFormatter: RelativeDateTimeFormatter {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .short
+        return f
+    }
+
+    private func checkNow() {
+        Task { await updates.checkForUpdate(silent: false) }
     }
 }

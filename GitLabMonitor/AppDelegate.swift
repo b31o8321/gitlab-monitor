@@ -26,6 +26,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }.store(in: &cancellables)
 
         poller.start()
+        UpdateManager.shared.start()
 
         NotificationCenter.default.addObserver(
             self,
@@ -47,6 +48,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .refreshRequested,
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleClosePopover),
+            name: .closePopoverRequested,
+            object: nil
+        )
+    }
+
+    @objc private func handleClosePopover() {
+        closePopover()
     }
 
     @objc private func handleRefresh() {

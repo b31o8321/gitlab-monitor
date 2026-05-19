@@ -4,6 +4,26 @@
 
 ---
 
+## [0.1.8] — 2026-05-19
+
+### English
+
+#### Added
+- Auto-update from GitHub Releases. On launch + every 6 hours, the app queries `GET /repos/<owner>/<repo>/releases/latest`, compares `tag_name` against `CFBundleShortVersionString`, and shows an in-popover banner when a newer version is published. Clicking "更新" opens a confirm dialog with the release notes; choosing "现在更新" downloads the DMG to `~/Library/Caches/`, hands off to a one-shot bash updater (mounts DMG → copies app to its current install path → clears quarantine → relaunches), and quits.
+- Manual "检查更新" button in Settings, including current version and last-checked timestamp.
+- "跳过该版本" option in both the banner and confirm dialog: persists the skipped version in UserDefaults so silent checks ignore it (manual check still surfaces it).
+
+### 中文
+
+#### 新增
+- 自动从 GitHub Release 检查 + 安装更新。启动时和之后每 6 小时拉取 GitHub Release，发现更高版本时菜单栏弹窗顶部出现"v0.1.x 可用 [更新]"横幅。点"更新"弹窗显示版本说明并要求确认，选"现在更新"后自动下载 DMG、清 quarantine、替换 app 并重启。
+- 设置里新增"应用更新"区块，可手动"检查更新"并查看上次检查时间。
+- 横幅和确认弹窗都可以"跳过该版本"，跳过的版本号存在 UserDefaults 里，自动检查时不再提醒（手动检查仍会显示）。
+
+> **注意**：自动更新逻辑本身在 v0.1.8 里。从 v0.1.7 升级到 v0.1.8 仍需手动安装一次（xattr -cr + 拖到 Applications）。v0.1.9 起就完全自动。
+
+---
+
 ## [0.1.7] — 2026-05-19
 
 ### English
