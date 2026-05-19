@@ -4,6 +4,22 @@
 
 ---
 
+## [0.1.9] — 2026-05-19
+
+### English
+
+#### Fixed
+- Test bundle now uses an isolated UserDefaults suite. Previously `xcodebuild test` would overwrite the user's real `com.gitlab-monitor.appSettings` with the fixture data (`https://gitlab.example.com / group/project / main`), wiping configured repositories every time the test suite ran on the same machine. `RepositoryStore` and `AppSettings.load/save` now accept an injected `UserDefaults`, defaulting to `.standard` for production and per-test suites in tests.
+
+### 中文
+
+#### 修复
+- 测试用例改为隔离的 UserDefaults suite。原本 `xcodebuild test` 会把测试 fixture（`https://gitlab.example.com / group/project / main`）写到主 app 共用的 `com.gitlab-monitor.appSettings`，导致开发机上每跑一次测试，你已配置的仓库列表就被清空一次。`RepositoryStore` 和 `AppSettings.load/save` 改为可注入 `UserDefaults`，生产用 `.standard`，测试每个用例独立 suite，互不影响。
+
+> 这一版主要用来**验证从 v0.1.8 自动升级到 v0.1.9 的端到端链路**是否打通。
+
+---
+
 ## [0.1.8] — 2026-05-19
 
 ### English
