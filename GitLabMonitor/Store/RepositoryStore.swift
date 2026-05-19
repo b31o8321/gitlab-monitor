@@ -17,16 +17,22 @@ struct RepositoryState: Identifiable {
 @MainActor
 class RepositoryStore: ObservableObject {
     @Published var states: [RepositoryState] = []
-    @Published var settings: AppSettings = .load()
+    @Published var settings: AppSettings
     @Published var globalError: String? = nil
 
-    init() {
+    /// Backing UserDefaults — injectable so tests can use an isolated suite
+    /// and not clobber the user's real `com.gitlab-monitor.appSettings`.
+    let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        self.settings = AppSettings.load(from: defaults)
         syncStates()
     }
 
     func updateSettings(_ newSettings: AppSettings) {
         settings = newSettings
-        settings.save()
+        settings.save(to: defaults)
         syncStates()
     }
 

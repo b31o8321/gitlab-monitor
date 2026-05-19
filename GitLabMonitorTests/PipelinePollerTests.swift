@@ -4,6 +4,15 @@ import XCTest
 @MainActor
 final class PipelinePollerTests: XCTestCase {
 
+    /// Build a fresh, per-test UserDefaults so RepositoryStore writes never
+    /// touch the user's real `com.gitlab-monitor.appSettings`.
+    static func isolatedDefaults() -> UserDefaults {
+        let suite = "gitlab-monitor.tests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        return defaults
+    }
+
     final class MockGitLabService: GitLabServiceProtocol {
         var pipelineResult: Result<PipelineResult, GitLabError>
         var branchesByPath: [String] = []
@@ -32,7 +41,7 @@ final class PipelinePollerTests: XCTestCase {
     }
 
     func testPollerUpdatesStoreOnSuccess() async throws {
-        let store = RepositoryStore()
+        let store = RepositoryStore(defaults: Self.isolatedDefaults())
         let repo = Repository(name: "test", projectPath: "group/project", branch: "main")
         var settings = AppSettings.default
         settings.gitlabUrl = "https://gitlab.example.com"
@@ -56,7 +65,7 @@ final class PipelinePollerTests: XCTestCase {
     }
 
     func testPollerUpdatesStoreOnError() async throws {
-        let store = RepositoryStore()
+        let store = RepositoryStore(defaults: Self.isolatedDefaults())
         let repo = Repository(name: "test", projectPath: "group/project", branch: "main")
         var settings = AppSettings.default
         settings.gitlabUrl = "https://gitlab.example.com"
@@ -73,7 +82,7 @@ final class PipelinePollerTests: XCTestCase {
     }
 
     func testPollerWithRuleResolvesLatestBranchAndPolls() async throws {
-        let store = RepositoryStore()
+        let store = RepositoryStore(defaults: Self.isolatedDefaults())
         let repo = Repository(
             name: "test",
             projectPath: "group/project",
@@ -103,7 +112,7 @@ final class PipelinePollerTests: XCTestCase {
     }
 
     func testPollerSetsNoBranchMatchErrorWhenRuleMisses() async throws {
-        let store = RepositoryStore()
+        let store = RepositoryStore(defaults: Self.isolatedDefaults())
         let repo = Repository(
             name: "test",
             projectPath: "group/project",

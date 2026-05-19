@@ -5,22 +5,24 @@ struct AppSettings: Codable {
     var pollInterval: Int
     var repositories: [Repository]
 
+    static let storageKey = "com.gitlab-monitor.appSettings"
+
     static let `default` = AppSettings(
         gitlabUrl: "",
         pollInterval: 60,
         repositories: []
     )
 
-    static func load() -> AppSettings {
-        guard let data = UserDefaults.standard.data(forKey: "com.gitlab-monitor.appSettings"),
+    static func load(from defaults: UserDefaults = .standard) -> AppSettings {
+        guard let data = defaults.data(forKey: storageKey),
               let settings = try? JSONDecoder().decode(AppSettings.self, from: data) else {
             return .default
         }
         return settings
     }
 
-    func save() {
+    func save(to defaults: UserDefaults = .standard) {
         guard let data = try? JSONEncoder().encode(self) else { return }
-        UserDefaults.standard.set(data, forKey: "com.gitlab-monitor.appSettings")
+        defaults.set(data, forKey: Self.storageKey)
     }
 }
