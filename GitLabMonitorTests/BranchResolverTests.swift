@@ -27,6 +27,10 @@ final class BranchResolverTests: XCTestCase {
             lastProjectPath = projectPath
             return branches.map { GitLabBranch(name: $0) }
         }
+
+        func fetchRecentSuccessDurations(gitlabUrl: String, projectPath: String, branch: String, token: String, limit: Int) async throws -> [TimeInterval] {
+            return []
+        }
     }
 
     func testFixedReturnsLiteralAndDoesNotCallApi() async throws {

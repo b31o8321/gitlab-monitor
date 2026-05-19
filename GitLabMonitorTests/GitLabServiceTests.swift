@@ -29,13 +29,18 @@ final class GitLabServiceTests: XCTestCase {
         func fetchBranches(gitlabUrl: String, token: String, projectPath: String, search: String?) async throws -> [GitLabBranch] {
             return []
         }
+
+        func fetchRecentSuccessDurations(gitlabUrl: String, projectPath: String, branch: String, token: String, limit: Int) async throws -> [TimeInterval] {
+            return []
+        }
     }
 
     func testParseSuccessPipeline() async throws {
         let expectedResult = PipelineResult(
             status: .success,
             webUrl: "https://gitlab.example.com/group/project/-/pipelines/1",
-            updatedAt: Date()
+            updatedAt: Date(),
+            startedAt: nil
         )
         let mock = MockGitLabService(resultToReturn: .success(expectedResult))
         let result = try await mock.fetchLatestPipeline(
@@ -52,7 +57,8 @@ final class GitLabServiceTests: XCTestCase {
         let expectedResult = PipelineResult(
             status: .running,
             webUrl: "https://gitlab.example.com/group/project/-/pipelines/2",
-            updatedAt: Date()
+            updatedAt: Date(),
+            startedAt: nil
         )
         let mock = MockGitLabService(resultToReturn: .success(expectedResult))
         let result = try await mock.fetchLatestPipeline(

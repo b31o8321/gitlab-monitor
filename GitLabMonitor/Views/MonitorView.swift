@@ -8,12 +8,19 @@ extension Notification.Name {
 struct MonitorView: View {
     @ObservedObject var store: RepositoryStore
 
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            HStack {
+            HStack(spacing: 6) {
                 Text("GitLab Monitor")
                     .fontWeight(.semibold)
+                Text("v\(appVersion)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
                 Spacer()
                 Button(action: {
                     NotificationCenter.default.post(name: .refreshRequested, object: nil)

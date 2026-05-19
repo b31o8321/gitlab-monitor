@@ -4,6 +4,7 @@ struct PipelineResult {
     let status: PipelineStatus
     let webUrl: String
     let updatedAt: Date
+    let startedAt: Date?
 }
 
 protocol GitLabServiceProtocol {
@@ -13,6 +14,16 @@ protocol GitLabServiceProtocol {
         branch: String,
         token: String
     ) async throws -> PipelineResult
+
+    /// Returns the recent successful pipeline durations (seconds) on a branch,
+    /// ordered newest first. Used to estimate how long a running pipeline will take.
+    func fetchRecentSuccessDurations(
+        gitlabUrl: String,
+        projectPath: String,
+        branch: String,
+        token: String,
+        limit: Int
+    ) async throws -> [TimeInterval]
 
     func fetchProjects(
         gitlabUrl: String,

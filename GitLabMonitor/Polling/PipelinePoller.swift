@@ -76,7 +76,21 @@ class PipelinePoller {
                 branch: branch,
                 token: token
             )
-            store.applyResult(result, resolvedBranch: branch, for: repo.id)
+            // Only fetch a baseline (and pay the extra API call) when the pipeline
+            // is still in flight — finished pipelines don't need a progress estimate.
+            var baseline: TimeInterval? = nil
+            if result.status == .running || result.status == .pending {
+                if let durations = try? await service.fetchRecentSuccessDurations(
+                    gitlabUrl: gitlabUrl,
+                    projectPath: repo.projectPath,
+                    branch: branch,
+                    token: token,
+                    limit: 5
+                ), !durations.isEmpty {
+                    baseline = durations.reduce(0, +) / TimeInterval(durations.count)
+                }
+            }
+            store.applyResult(result, resolvedBranch: branch, baselineDuration: baseline, for: repo.id)
         } catch let error as GitLabError {
             store.applyError(error, for: repo.id, resolvedBranch: branch)
         } catch {

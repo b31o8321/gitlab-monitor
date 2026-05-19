@@ -20,6 +20,10 @@ final class PipelinePollerTests: XCTestCase {
             }
         }
 
+        func fetchRecentSuccessDurations(gitlabUrl: String, projectPath: String, branch: String, token: String, limit: Int) async throws -> [TimeInterval] {
+            return []
+        }
+
         func fetchProjects(gitlabUrl: String, token: String, search: String) async throws -> [GitLabProject] { [] }
         func fetchBranches(gitlabUrl: String, token: String, projectId: Int) async throws -> [GitLabBranch] { [] }
         func fetchBranches(gitlabUrl: String, token: String, projectPath: String, search: String?) async throws -> [GitLabBranch] {
@@ -38,7 +42,8 @@ final class PipelinePollerTests: XCTestCase {
         let mockResult = PipelineResult(
             status: .success,
             webUrl: "https://gitlab.example.com/group/project/-/pipelines/1",
-            updatedAt: Date()
+            updatedAt: Date(),
+            startedAt: nil
         )
         let mockService = MockGitLabService(result: .success(mockResult))
         let poller = PipelinePoller(store: store, service: mockService)
@@ -82,7 +87,8 @@ final class PipelinePollerTests: XCTestCase {
         let mockResult = PipelineResult(
             status: .running,
             webUrl: "https://gitlab.example.com/x",
-            updatedAt: Date()
+            updatedAt: Date(),
+            startedAt: nil
         )
         let mockService = MockGitLabService(
             result: .success(mockResult),

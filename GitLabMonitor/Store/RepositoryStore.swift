@@ -7,6 +7,8 @@ struct RepositoryState: Identifiable {
     var resolvedBranch: String?
     var webUrl: String?
     var updatedAt: Date?
+    var startedAt: Date?
+    var baselineDuration: TimeInterval?
     var errorMessage: String?
 
     var id: UUID { repository.id }
@@ -28,11 +30,13 @@ class RepositoryStore: ObservableObject {
         syncStates()
     }
 
-    func applyResult(_ result: PipelineResult, resolvedBranch: String, for repositoryId: UUID) {
+    func applyResult(_ result: PipelineResult, resolvedBranch: String, baselineDuration: TimeInterval?, for repositoryId: UUID) {
         guard let index = states.firstIndex(where: { $0.id == repositoryId }) else { return }
         states[index].status = result.status
         states[index].webUrl = result.webUrl
         states[index].updatedAt = result.updatedAt
+        states[index].startedAt = result.startedAt
+        states[index].baselineDuration = baselineDuration
         states[index].resolvedBranch = resolvedBranch
         states[index].errorMessage = nil
         globalError = nil

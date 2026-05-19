@@ -4,6 +4,30 @@
 
 ---
 
+## [0.1.7] — 2026-05-19
+
+### English
+
+#### Added
+- Running pipelines now show a progress bar plus elapsed/baseline times (e.g. `[████████░░░░] 1m20s / 2m30s`). The baseline is the average duration of the last 5 successful pipelines on the same branch, fetched via GitLab API. Row ticks every 5 seconds so the elapsed portion stays live. When elapsed exceeds the baseline the bar fills and shows "超过历史 X". When no baseline exists (first deployment, etc.), only the elapsed time is shown.
+- Version number displayed next to the app name in the popover header (`GitLab Monitor v0.1.7`), so it's obvious whether you're on the latest build.
+
+#### Changed
+- Access token is now stored in UserDefaults instead of macOS Keychain. With ad-hoc signing the keychain ACL was tied to the code signature, so each rebuild made the previous token unreadable — colleagues had to re-paste the token on every upgrade. UserDefaults survives reinstalls cleanly. A one-shot migration on first launch pulls any existing Keychain token forward, so no manual action is needed.
+- GitLab timestamp parsing accepts both with and without fractional seconds, and falls back across `started_at` / `created_at` / `updated_at` so the progress bar appears reliably across GitLab versions.
+
+### 中文
+
+#### 新增
+- 运行中的 pipeline 显示进度条 + 已用/预计耗时（如 `[████████░░░░] 1m20s / 2m30s`）。基线取该分支最近 5 次成功流水线的平均耗时，从 GitLab API 拉取。Row 每 5 秒刷新一次。超时则进度条占满 + 显示"超过历史 X"。若从未成功过，只显示已运行时间。
+- 弹窗头部显示应用版本号（`GitLab Monitor v0.1.7`），方便判断是不是最新版。
+
+#### 变更
+- Token 改存 UserDefaults，不再使用 Keychain。原因：ad-hoc 签名每次重新构建签名都不一样，macOS Keychain ACL 会拒绝读取旧版本写入的 token，导致同事每次升级都得重新粘贴 token。UserDefaults 不受签名变化影响，重装后 token + GitLab URL + 仓库列表全部保留。首次启动会自动从老 Keychain 把 token 搬过来，无需手动操作。
+- GitLab 时间戳解析同时兼容带毫秒与不带毫秒两种格式，并依次回退 `started_at` / `created_at` / `updated_at`，进度条在各种 GitLab 版本下都能稳定显示。
+
+---
+
 ## [0.1.6] — 2026-05-18
 
 ### English
