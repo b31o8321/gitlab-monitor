@@ -3,6 +3,7 @@ import Foundation
 struct GitLabService: GitLabServiceProtocol {
 
     private struct PipelineJSON: Decodable {
+        let id: Int?
         let status: String
         let web_url: String
         let updated_at: String
@@ -113,15 +114,66 @@ struct GitLabService: GitLabServiceProtocol {
 
         let pipelines = try JSONDecoder().decode([PipelineJSON].self, from: data)
 
-        return pipelines.compactMap { p -> TimeInterval? in
-            // Prefer the API-provided duration field when present.
-            if let d = p.duration, d > 0 { return TimeInterval(d) }
-            // Fall back to (finished|updated)_at − (started|created)_at.
-            guard let end = Self.parseGitLabDate(p.finished_at) ?? Self.parseGitLabDate(p.updated_at) else { return nil }
-            guard let start = Self.parseGitLabDate(p.started_at) ?? Self.parseGitLabDate(p.created_at) else { return nil }
-            let interval = end.timeIntervalSince(start)
-            return interval > 0 ? interval : nil
+        // GitLab's `/pipelines` list endpoint does NOT include the `duration`,
+        // `started_at`, or `finished_at` fields — only `created_at` / `updated_at`.
+        // Using `updated_at - created_at` as a duration proxy conflates the actual
+        // run time with queue, manual-gate, and delayed-job wait times, which can
+        // inflate the baseline by hours when even one pipeline in the window had
+        // a long wait. Fetch each pipeline's detail concurrently to read the real
+        // `duration` field, then average those.
+        return await withTaskGroup(of: TimeInterval?.self) { group in
+            for p in pipelines {
+                guard let pipelineId = p.id else { continue }
+                group.addTask {
+                    await Self.fetchPipelineRunDuration(
+                        gitlabUrl: gitlabUrl,
+                        encodedProjectPath: encodedPath,
+                        pipelineId: pipelineId,
+                        token: token
+                    )
+                }
+            }
+            var durations: [TimeInterval] = []
+            for await d in group {
+                if let d = d { durations.append(d) }
+            }
+            return durations
         }
+    }
+
+    /// Fetches a single pipeline's detail and returns its actual run duration in
+    /// seconds. Prefers the API-provided `duration` field (which excludes queue
+    /// and wait time); falls back to `finished_at - started_at` if `duration`
+    /// is absent. Returns nil rather than throwing so a single failed lookup
+    /// doesn't poison the whole baseline calculation.
+    private static func fetchPipelineRunDuration(
+        gitlabUrl: String,
+        encodedProjectPath: String,
+        pipelineId: Int,
+        token: String
+    ) async -> TimeInterval? {
+        let urlString = "\(gitlabUrl)/api/v4/projects/\(encodedProjectPath)/pipelines/\(pipelineId)"
+        guard let url = URL(string: urlString) else { return nil }
+        var request = URLRequest(url: url)
+        request.setValue(token, forHTTPHeaderField: "PRIVATE-TOKEN")
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            return nil
+        }
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
+        guard let detail = try? JSONDecoder().decode(PipelineJSON.self, from: data) else { return nil }
+        if let d = detail.duration, d > 0 {
+            return TimeInterval(d)
+        }
+        // Last-resort fallback: finished_at - started_at (NOT created_at — that
+        // includes queue time and would put us right back in the bug we just fixed).
+        guard let start = parseGitLabDate(detail.started_at),
+              let end = parseGitLabDate(detail.finished_at) else { return nil }
+        let interval = end.timeIntervalSince(start)
+        return interval > 0 ? interval : nil
     }
 
     func fetchProjects(gitlabUrl: String, token: String, search: String) async throws -> [GitLabProject] {

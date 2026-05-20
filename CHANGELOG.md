@@ -4,6 +4,20 @@
 
 ---
 
+## [0.1.11] — 2026-05-20
+
+### English
+
+#### Fixed
+- Pipeline progress baseline could blow up to hours when one of the last five successful pipelines had a delayed manual gate, retry, or stale `updated_at` (e.g. a pipeline that ran for 6 min but whose `updated_at` was bumped 14 hours later by a status change). Root cause: the `/pipelines` list endpoint does not include `duration`, `started_at`, or `finished_at`, so we were approximating each entry's run time as `updated_at - created_at` and getting "creation to last activity" instead of "actual run time". Fix: for each of the last 5 successful pipelines, fetch the detail endpoint (`/pipelines/:id`) concurrently to read the real `duration` field; fall back only to `finished_at - started_at` (never to `created_at`, which still includes queue time).
+
+### 中文
+
+#### 修复
+- 进度条基线偶尔会被算成几个小时。原因:GitLab 的 `/pipelines` 列表接口**不返回** `duration`/`started_at`/`finished_at` 字段，旧代码只能用 `updated_at - created_at` 当作 fallback —— 但这个跨度会把排队、手动等待、重试中间的 `updated_at` 跳变都算进去。例如有条流水线实际只跑 6 分钟，但 `updated_at` 被 14 小时之后的状态变更刷新，平均下来基线就被拉到 170 分钟。改成对最近 5 次成功的流水线**并发拉详情接口**（`/pipelines/:id`），用真正的 `duration` 字段算平均；万不得已才回退到 `finished_at - started_at`（不再用 `created_at`，避开排队时间）。
+
+---
+
 ## [0.1.10] — 2026-05-19
 
 ### English
